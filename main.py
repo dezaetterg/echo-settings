@@ -1,7 +1,15 @@
 import sys
 import os
 
+# GNOME Wayland Screencast Fix:
+# Qt6 native Wayland QPA (qwayland) has a known DMA-BUF buffer desync with Mutter/PipeWire screen recorder,
+# causing severe black frame flickering on video recordings.
+# Forcing xcb (XWayland) under GNOME Wayland ensures 100% rock-solid, flicker-free rendering and screen recording.
+if os.environ.get("XDG_SESSION_TYPE") == "wayland" and "GNOME" in os.environ.get("XDG_CURRENT_DESKTOP", ""):
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+
 os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.services=false;qt.qpa.portal=false")
+os.environ.setdefault("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SCRIPT_DIR)

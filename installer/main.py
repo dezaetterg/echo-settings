@@ -11,6 +11,11 @@ import os
 import subprocess
 import traceback
 
+# GNOME Wayland Screencast Fix:
+if os.environ.get("XDG_SESSION_TYPE") == "wayland" and "GNOME" in os.environ.get("XDG_CURRENT_DESKTOP", ""):
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
+os.environ.setdefault("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
+
 # Ensure current and parent dirs are in sys.path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.dirname(SCRIPT_DIR)
@@ -1910,14 +1915,14 @@ class EchoInstallerWindow(QWidget):
         # ── Liquid Glass Substrate Gradient ──
         if self.is_dark:
             grad = QRadialGradient(QPointF(rect.width() * 0.5, 0), rect.width() * 0.90)
-            grad.setColorAt(0.0, QColor(36, 38, 44, 252))
-            grad.setColorAt(0.5, QColor(26, 28, 32, 253))
+            grad.setColorAt(0.0, QColor(36, 38, 44, 255))
+            grad.setColorAt(0.5, QColor(26, 28, 32, 255))
             grad.setColorAt(1.0, QColor(18, 20, 24, 255))
             p.fillPath(path, grad)
         else:
             grad = QRadialGradient(QPointF(rect.width() * 0.5, 0), rect.width() * 0.90)
-            grad.setColorAt(0.0, QColor(255, 255, 255, 253))
-            grad.setColorAt(0.6, QColor(246, 247, 250, 253))
+            grad.setColorAt(0.0, QColor(255, 255, 255, 255))
+            grad.setColorAt(0.6, QColor(246, 247, 250, 255))
             grad.setColorAt(1.0, QColor(238, 240, 244, 255))
             p.fillPath(path, grad)
 
@@ -2191,14 +2196,14 @@ class EchoUninstallerWindow(QWidget):
         # ── Liquid Glass Substrate Gradient ──
         if self.is_dark:
             grad = QRadialGradient(QPointF(rect.width() * 0.5, 0), rect.width() * 0.90)
-            grad.setColorAt(0.0, QColor(36, 38, 44, 252))
-            grad.setColorAt(0.5, QColor(26, 28, 32, 253))
+            grad.setColorAt(0.0, QColor(36, 38, 44, 255))
+            grad.setColorAt(0.5, QColor(26, 28, 32, 255))
             grad.setColorAt(1.0, QColor(18, 20, 24, 255))
             p.fillPath(path, grad)
         else:
             grad = QRadialGradient(QPointF(rect.width() * 0.5, 0), rect.width() * 0.90)
-            grad.setColorAt(0.0, QColor(255, 255, 255, 253))
-            grad.setColorAt(0.6, QColor(246, 247, 250, 253))
+            grad.setColorAt(0.0, QColor(255, 255, 255, 255))
+            grad.setColorAt(0.6, QColor(246, 247, 250, 255))
             grad.setColorAt(1.0, QColor(238, 240, 244, 255))
             p.fillPath(path, grad)
 

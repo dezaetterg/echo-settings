@@ -62,6 +62,9 @@ fi
 cat << 'BIN_EOF' > "$BUILD_DIR/usr/bin/echo-settings"
 #!/usr/bin/env bash
 export PYTHONPATH="/usr/share/echo-settings:$PYTHONPATH"
+if [ "$XDG_SESSION_TYPE" = "wayland" ] && [[ "$XDG_CURRENT_DESKTOP" == *"GNOME"* ]] && [ -z "$QT_QPA_PLATFORM" ]; then
+    export QT_QPA_PLATFORM="xcb"
+fi
 exec python3 /usr/share/echo-settings/main.py "$@"
 BIN_EOF
 chmod 755 "$BUILD_DIR/usr/bin/echo-settings"
