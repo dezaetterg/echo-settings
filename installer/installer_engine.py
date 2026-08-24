@@ -390,7 +390,6 @@ X-Echo-Version={VERSION}
 
         # 2. Check for local source directories or .deb archives
         local_candidates = [
-            "/home/demid/echo_search",
             os.path.expanduser("~/echo_search"),
             "/usr/lib/echo-search",
             "/usr/share/echo-search",
@@ -398,8 +397,6 @@ X-Echo-Version={VERSION}
         ]
 
         local_deb_candidates = [
-            "/home/demid/echo_search/dist/echo-search_latest.deb",
-            "/home/demid/echo_search/dist/echo-search_1.0.3_all.deb",
             os.path.expanduser("~/echo_search/dist/echo-search_latest.deb"),
             "/tmp/echo-search_latest.deb",
         ]
