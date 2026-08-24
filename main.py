@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
         
         self.central_widget = QWidget()
         self.central_widget.setObjectName("centralWidget")
+        self.central_widget.setAttribute(Qt.WA_StyledBackground, True)
         self.setCentralWidget(self.central_widget)
         
         self.main_layout = QHBoxLayout(self.central_widget)
@@ -61,10 +62,12 @@ class MainWindow(QMainWindow):
         self.main_layout.setSpacing(0)
         
         self.sidebar = Sidebar()
+        self.sidebar.setAttribute(Qt.WA_StyledBackground, True)
         self.main_layout.addWidget(self.sidebar)
         
         self.right_widget = QWidget()
         self.right_widget.setObjectName("RightArea")
+        self.right_widget.setAttribute(Qt.WA_StyledBackground, True)
         self.right_layout = QVBoxLayout(self.right_widget)
         self.right_layout.setContentsMargins(0, 0, 0, 0)
         self.right_layout.setSpacing(0)
@@ -99,7 +102,7 @@ class MainWindow(QMainWindow):
         # Theme sync timer
         self.theme_timer = QTimer(self)
         self.theme_timer.timeout.connect(self.check_theme)
-        self.theme_timer.start(1000) # Check every 1s
+        self.theme_timer.start(3000) # Check every 3s
 
         initial_page = "General"
         if settings.value("restore_page", False, type=bool):
@@ -234,10 +237,12 @@ class MainWindow(QMainWindow):
             mode = service.get_theme_mode()
 
         effective = service.get_effective_theme(mode)
-        # Ensure desktop environment reflects the active scheme
-        service.apply_effective_theme(effective)
 
-        if effective != self.last_theme:
+        if effective != self.last_theme or force_theme is not None:
+            # Only apply to system gsettings when the theme actually changes,
+            # avoiding flooding GNOME/Mutter with settings-change events that cause
+            # black screen flicker in PipeWire/GNOME screen recordings.
+            service.apply_effective_theme(effective)
             # Create crossfade transition if this is not the initial load
             if self.last_theme is not None:
                 self.start_theme_transition()

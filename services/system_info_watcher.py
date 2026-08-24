@@ -1,25 +1,9 @@
-"""
-SystemInfoWatcher — периодически опрашивает систему и сигналит об изменениях
-в имени пользователя, аватаре, hostname, GPU, RAM, ядре и т.д.
-"""
-
 import os
 import subprocess
 import hashlib
+import threading
 
-from PySide6.QtCore import QObject, QThread, Signal, QTimer
-
-
-class _InfoFetcher(QThread):
-    """Рабочий поток — собирает снимок системной информации."""
-    done = Signal(dict)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def run(self):
-        self.done.emit(SystemInfoWatcher._collect())
-
+from PySide6.QtCore import QObject, Signal, QTimer
 
 
 class SystemInfoWatcher(QObject):
@@ -27,31 +11,17 @@ class SystemInfoWatcher(QObject):
     Singleton-подобный наблюдатель. Каждые interval_ms миллисекунд он
     перепроверяет информацию о системе. Если что-то изменилось — испускает
     `info_changed(dict)` с полным свежим снимком.
-
-    Поля снимка:
-        full_name      — полное имя пользователя (pw_gecos или username)
-        username       — логин
-        hostname       — имя хоста
-        avatar_path    — путь к ~/.face (или '' если нет)
-        avatar_hash    — MD5 файла аватара (или '' если нет)
-        gpu            — строка GPU из lspci
-        ram            — строка ОЗУ из /proc/meminfo
-        kernel         — uname -r
-        architecture   — uname -m
-        disk           — df /
-        cpu            — /proc/cpuinfo model name
-        session_type   — XDG_SESSION_TYPE (wayland / x11)
-        desktop        — XDG_CURRENT_DESKTOP
     """
 
     info_changed = Signal(dict)
 
-    def __init__(self, interval_ms: int = 5000, parent=None):
+    def __init__(self, interval_ms: int = 10000, parent=None):
         super().__init__(parent)
         self._last_snapshot: dict = {}
-        self._fetcher: _InfoFetcher | None = None
+        self._is_fetching = False
+        self._is_stopped = False
 
-        # Запуск сразу при создании
+        # Запуск таймера
         self._timer = QTimer(self)
         self._timer.setInterval(interval_ms)
         self._timer.timeout.connect(self._poll)
@@ -65,11 +35,9 @@ class SystemInfoWatcher(QObject):
     # ------------------------------------------------------------------
     def stop(self):
         """Остановить таймер и фоновый поток."""
+        self._is_stopped = True
         if hasattr(self, '_timer'):
             self._timer.stop()
-        if self._fetcher and self._fetcher.isRunning():
-            self._fetcher.quit()
-            self._fetcher.wait(500)
 
     def get_snapshot(self) -> dict:
         """Вернуть последний известный снимок (синхронно)."""
@@ -77,17 +45,26 @@ class SystemInfoWatcher(QObject):
             self._last_snapshot = self._collect()
         return dict(self._last_snapshot)
 
-
     # ------------------------------------------------------------------
     # Внутренние методы
     # ------------------------------------------------------------------
     def _poll(self):
         """Запустить фоновый поток для сбора данных."""
-        if self._fetcher and self._fetcher.isRunning():
-            return  # предыдущий ещё не закончил
-        self._fetcher = _InfoFetcher(self)
-        self._fetcher.done.connect(self._on_fetched)
-        self._fetcher.start()
+        if self._is_fetching or self._is_stopped:
+            return
+        self._is_fetching = True
+
+        def _worker():
+            try:
+                snapshot = self._collect()
+            except Exception:
+                snapshot = {}
+            self._is_fetching = False
+            if not self._is_stopped and snapshot:
+                self._on_fetched(snapshot)
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
 
     def _on_fetched(self, snapshot: dict):
         if snapshot != self._last_snapshot:
