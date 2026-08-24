@@ -7,15 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag to release (e.g. v1.0.1)'
+        description: 'Version tag to release (e.g. v1.0.2)'
         required: false
-        default: 'v1.0.1'
+        default: 'v1.0.2'
 
 permissions:
   contents: write
 
 jobs:
-  build-deb:
+  build-deb-arch:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,23 +24,53 @@ jobs:
       - name: Install build tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev rsync
+          sudo apt-get install -y dpkg-dev rsync zstd
 
       - name: Build Debian Package
         run: |
           chmod +x build_deb.sh
           ./build_deb.sh
 
-      - name: Upload Debian artifact
+      - name: Build Arch Linux Package
+        run: |
+          chmod +x build_arch.sh
+          ./build_arch.sh
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: deb-packages
+          name: deb-arch-packages
           path: |
             dist/*.deb
+            dist/*.pkg.tar.zst
+            dist/*.sha256
+
+  build-rpm:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install RPM build tools
+        run: |
+          dnf install -y rpm-build rsync desktop-file-utils findutils coreutils
+
+      - name: Build RPM Package
+        run: |
+          chmod +x build_rpm.sh
+          ./build_rpm.sh
+
+      - name: Upload RPM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-packages
+          path: |
+            dist/*.rpm
             dist/*.sha256
 
   publish-release:
-    needs: [build-deb]
+    needs: [build-deb-arch, build-rpm]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -59,6 +89,8 @@ jobs:
           echo "### 📦 Готовые пакеты для установки:" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "* **Debian / Ubuntu / Linux Mint / PikaOS:** \`sudo apt install ./echo-settings_*_amd64.deb\`" >> RELEASE_NOTES.md
+          echo "* **Arch Linux / Manjaro / EndeavourOS:** \`sudo pacman -U ./echo-settings-*-any.pkg.tar.zst\`" >> RELEASE_NOTES.md
+          echo "* **Fedora / RHEL / openSUSE:** \`sudo dnf install ./echo-settings-*.noarch.rpm\`" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "### 🚀 Запуск:" >> RELEASE_NOTES.md
           echo "Через меню приложений (**Echo Settings**) или терминал \`echo-settings\`." >> RELEASE_NOTES.md
@@ -69,6 +101,8 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             release_files/*.deb
+            release_files/*.pkg.tar.zst
+            release_files/*.rpm
             release_files/*.sha256
           draft: false
           prerelease: false

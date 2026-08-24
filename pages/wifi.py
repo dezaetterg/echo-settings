@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QHBoxLayout, QScrollArea, 
     QStackedWidget, QPushButton, QGraphicsOpacityEffect, QGridLayout
 )
-from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal, QTimer, QRectF, QThread
+from PySide6.QtCore import Qt, QPropertyAnimation, Property, QEasingCurve, Signal, QTimer, QRectF, QThread, QObject
 from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QConicalGradient
 
 from theme.colors import Colors
@@ -380,27 +380,45 @@ class EmptyStateWidget(QWidget):
 
 # ─── Main WiFi List Page ─────────────────────────────────────────
 
-class WiFiScanThread(QThread):
+import threading
+
+class WiFiScanWorker(QObject):
     networks_ready = Signal(list, object)
 
     def __init__(self, service: WiFiService, parent=None):
         super().__init__(parent)
         self.service = service
+        self._thread = None
+        self._is_cancelled = False
 
-    def run(self):
-        try:
-            nets = self.service.get_networks()
-            active_net = next((n for n in nets if n.get('active')), None)
-            details = None
-            if active_net:
-                try:
-                    details = self.service.get_network_details(active_net['ssid'])
-                except Exception:
-                    details = None
-        except Exception:
-            nets = []
-            details = None
-        self.networks_ready.emit(nets, details)
+    def start_scan(self):
+        self._is_cancelled = False
+        def _run():
+            try:
+                nets = self.service.get_networks()
+                if self._is_cancelled:
+                    return
+                active_net = next((n for n in nets if n.get('active')), None)
+                details = None
+                if active_net and not self._is_cancelled:
+                    try:
+                        details = self.service.get_network_details(active_net['ssid'])
+                    except Exception:
+                        details = None
+            except Exception:
+                nets = []
+                details = None
+            if not self._is_cancelled:
+                self.networks_ready.emit(nets, details)
+
+        self._thread = threading.Thread(target=_run, daemon=True)
+        self._thread.start()
+
+    def is_running(self) -> bool:
+        return self._thread is not None and self._thread.is_alive()
+
+    def cancel(self):
+        self._is_cancelled = True
 
 
 class WiFiListPage(QWidget):
@@ -410,7 +428,7 @@ class WiFiListPage(QWidget):
         super().__init__()
         self.service = service
         self.is_wifi_on = self.service.is_enabled()
-        self._scan_thread = None
+        self._scan_worker = None
         self._cached_networks = []
         self._cached_details = None
         
@@ -469,11 +487,11 @@ class WiFiListPage(QWidget):
             self.layout.addWidget(top_card)
             self.layout.addStretch()
 
-        if self._scan_thread and self._scan_thread.isRunning():
+        if self._scan_worker and self._scan_worker.is_running():
             return
-        self._scan_thread = WiFiScanThread(self.service, self)
-        self._scan_thread.networks_ready.connect(self._on_scan_finished)
-        self._scan_thread.start()
+        self._scan_worker = WiFiScanWorker(self.service, self)
+        self._scan_worker.networks_ready.connect(self._on_scan_finished)
+        self._scan_worker.start_scan()
 
     def _on_scan_finished(self, networks, details):
         self._cached_networks = networks
@@ -555,9 +573,14 @@ class WiFiListPage(QWidget):
             delay += 40
 
     def cleanup(self):
-        if self._scan_thread and self._scan_thread.isRunning():
-            self._scan_thread.quit()
-            self._scan_thread.wait(500)
+        if hasattr(self, '_scan_worker') and self._scan_worker:
+            self._scan_worker.cancel()
+
+    def __del__(self):
+        try:
+            self.cleanup()
+        except Exception:
+            pass
 
     def closeEvent(self, event):
         self.cleanup()

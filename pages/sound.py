@@ -231,6 +231,17 @@ class SoundPage(QWidget):
             for i, k in enumerate(self.dev_info_keys):
                 self.dev_info_card.update_row(i, "—")
 
+    def cleanup(self):
+        if hasattr(self, 'mic_monitor') and self.mic_monitor:
+            try:
+                self.mic_monitor.stop()
+            except Exception:
+                pass
+
+    def closeEvent(self, event):
+        self.cleanup()
+        super().closeEvent(event)
+
     def get_search_target(self, target_id: str) -> QWidget | None:
         targets = {
             "sound.output_volume": getattr(self, "out_group", None),

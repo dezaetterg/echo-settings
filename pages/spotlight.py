@@ -553,6 +553,15 @@ class SpotlightPage(QWidget):
         
         self.update()
 
+    def cleanup(self):
+        if hasattr(self, '_quick_install_thread') and self._quick_install_thread and self._quick_install_thread.isRunning():
+            self._quick_install_thread.quit()
+            self._quick_install_thread.wait(500)
+
+    def closeEvent(self, event):
+        self.cleanup()
+        super().closeEvent(event)
+
     def get_search_target(self, target_id: str) -> QWidget | None:
         targets = {
             "spotlight.shortcut": getattr(self, "group_general", None),
