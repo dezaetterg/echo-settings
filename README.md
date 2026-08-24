@@ -94,17 +94,36 @@ chmod +x install.sh
 sudo apt install ~/Загрузки/echo-settings_*.deb || sudo apt install ~/Downloads/echo-settings_*.deb
 
 # Либо установка скачанного файла в текущей папке:
-sudo apt install ./echo-settings_1.0.1_amd64.deb
+sudo apt install ./echo-settings_1.0.3_amd64.deb
 ```
 
-### 3. Сборка deb-пакета из исходников
+### 3. Arch Linux / Manjaro (PKGBUILD)
+Сборка и установка через `makepkg`:
+
+```bash
+git clone https://github.com/dezaetterg/echo-settings.git
+cd echo-settings
+makepkg -si
+```
+
+### 4. Fedora / openSUSE / RHEL
+Установка через универсальный установщик:
+
+```bash
+git clone https://github.com/dezaetterg/echo-settings.git
+cd echo-settings
+chmod +x install.sh
+./install.sh
+```
+
+### 5. Сборка deb-пакета из исходников
 ```bash
 git clone https://github.com/dezaetterg/echo-settings.git
 cd echo-settings
 ./build_deb.sh
 ```
 
-### 4. Запуск из исходного кода
+### 6. Запуск из исходного кода
 ```bash
 git clone https://github.com/dezaetterg/echo-settings.git
 cd echo-settings
