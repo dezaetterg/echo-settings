@@ -12,6 +12,10 @@
 [![Qt6](https://img.shields.io/badge/UI-Qt6%20%2F%20PySide6-brightgreen.svg?style=flat-square)](https://www.qt.io/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square)](https://www.python.org/)
 
+<br>
+
+<img src="assets/screenshots/appearance.png" alt="Echo Settings Preview" width="800">
+
 </div>
 
 ## Возможности
@@ -28,6 +32,24 @@
 * **Уведомления**: глобальный режим «Не беспокоить» и выборочное отключение баннеров для отдельных программ.
 * **Интеграция с Echo Search**: настройка внешнего вида, горячих клавиш и поисковых модулей лаунчера Echo Search.
 * **Многоязычность**: полная локализация интерфейса на 13 языков с автоматическим определением языка системы.
+
+## Скриншоты интерфейса
+
+| Внешний вид и темы | Дисплеи и мониторы |
+| :---: | :---: |
+| <img src="assets/screenshots/appearance.png" width="440" alt="Внешний вид"> | <img src="assets/screenshots/displays.png" width="440" alt="Дисплеи"> |
+| **Сведения о системе (Основные)** | **Анализ хранилища дисков** |
+| <img src="assets/screenshots/about.png" width="440" alt="Основные сведения"> | <img src="assets/screenshots/storage.png" width="440" alt="Хранилище"> |
+| **Беспроводная сеть Wi-Fi** | **Сетевые интерфейсы и VPN** |
+| <img src="assets/screenshots/wifi.png" width="440" alt="Wi-Fi"> | <img src="assets/screenshots/network.png" width="440" alt="Сеть"> |
+| **Bluetooth устройства** | **Звук и аудиоустройства** |
+| <img src="assets/screenshots/bluetooth.png" width="440" alt="Bluetooth"> | <img src="assets/screenshots/sound.png" width="440" alt="Звук"> |
+| **Уведомления приложений** | **Электропитание и батарея** |
+| <img src="assets/screenshots/notifications.png" width="440" alt="Уведомления"> | <img src="assets/screenshots/power.png" width="440" alt="Питание"> |
+| **Клавиатура и ввод** | **Мышь и тачпад** |
+| <img src="assets/screenshots/keyboard.png" width="440" alt="Клавиатура"> | <img src="assets/screenshots/mouse.png" width="440" alt="Мышь"> |
+| **Конфиденциальность и доступ** | **Интеграция с Echo Search** |
+| <img src="assets/screenshots/privacy.png" width="440" alt="Конфиденциальность"> | <img src="assets/screenshots/echo_search.png" width="440" alt="Поиск Echo"> |
 
 ## Поддерживаемые языки
 
