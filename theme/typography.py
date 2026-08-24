@@ -1,0 +1,17 @@
+class Typography:
+    FONT_FAMILY = "'SF Pro Display', 'Inter', 'Noto Sans', sans-serif"
+    SIZE_HEADER = 30
+    SIZE_SUBHEADER = 20
+    SIZE_TITLE = 17
+    SIZE_BODY = 14
+    SIZE_SECONDARY = 13
+    SIZE_SMALL = 12
+    SIZE_CAPTION = 11
+    
+    WEIGHT_NORMAL = 400
+    WEIGHT_MEDIUM = 500
+    WEIGHT_SEMIBOLD = 600
+    WEIGHT_BOLD = 700
+    
+    LETTER_SPACING_HEADER = -0.2
+    LETTER_SPACING_NORMAL = 0

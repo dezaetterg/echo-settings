@@ -1,0 +1,71 @@
+QWidget#centralWidget {
+    background-color: #1E1E1E;
+    border-radius: 10px;
+    border: 1px solid #000000;
+}
+
+QMainWindow {
+    background: transparent;
+}
+
+QWidget#Sidebar {
+    background-color: #282828;
+    border-right: 1px solid #000000;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+QWidget#RightArea {
+    background-color: #1E1E1E;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* Scroll area in sidebar */
+QScrollArea#SidebarScroll {
+    border: none;
+    background: transparent;
+}
+QScrollArea#SidebarScroll > QWidget > QWidget {
+    background: transparent;
+}
+
+QLabel {
+    color: #FFFFFF;
+}
+
+/* MacOS Tahoe Vertical ScrollBar */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 6px;
+    margin: 4px 0px 4px 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(255, 255, 255, 0.1);
+    min-height: 30px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+QScrollBar[scrolling="true"]::handle:vertical {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    border: none;
+    background: none;
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
