@@ -90,6 +90,10 @@ chmod +x install.sh
 Готовый `.deb` пакет можно загрузить со страницы [Releases](https://github.com/dezaetterg/echo-settings/releases):
 
 ```bash
+# Если файл скачан через браузер:
+sudo apt install ~/Загрузки/echo-settings_*.deb || sudo apt install ~/Downloads/echo-settings_*.deb
+
+# Либо установка скачанного файла в текущей папке:
 sudo apt install ./echo-settings_1.0.1_amd64.deb
 ```
 
