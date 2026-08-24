@@ -115,41 +115,48 @@ class InstallationEngine:
         time.sleep(0.05)
         report(5, 100, "Target directories initialized.")
 
-        # Step 2: Copying application files (5% -> 22%)
-        report(6, 100, "Deploying core application resources, themes and pages...")
-        RUNTIME_ITEMS = [
-            "animations", "assets", "backends", "components", "docs",
-            "models", "pages", "services", "styles", "theme", "installer",
-            "main.py", "version.py", "localization.py", "icon.png"
-        ]
-        ignore_patterns = shutil.ignore_patterns(
-            "__pycache__", "*.pyc", "*.log", ".git*", "test_*.py", "scratch*", "build", "dist", ".tempmediaStorage"
-        )
+        is_same_dir = os.path.abspath(src_dir) == os.path.abspath(paths["app_dir"])
 
-        root_dir = os.path.dirname(src_dir)
-        for i, item in enumerate(RUNTIME_ITEMS):
-            src_item = os.path.join(src_dir, item)
-            if not os.path.exists(src_item):
-                src_item = os.path.join(root_dir, item)
-            if not os.path.exists(src_item):
-                continue
-            dst_item = os.path.join(paths["app_dir"], item)
-            if os.path.isdir(src_item):
-                if os.path.exists(dst_item):
-                    shutil.rmtree(dst_item)
-                shutil.copytree(src_item, dst_item, ignore=ignore_patterns)
-            else:
-                shutil.copy2(src_item, dst_item)
-            
-            p = 6 + int(16 * ((i + 1) / len(RUNTIME_ITEMS)))
-            report(p, 100, f"Deploying component: {item}...")
-            time.sleep(0.02)
+        # Step 2: Copying application files (5% -> 22%)
+        if not is_same_dir:
+            report(6, 100, "Deploying core application resources, themes and pages...")
+            RUNTIME_ITEMS = [
+                "animations", "assets", "backends", "components", "docs",
+                "models", "pages", "services", "styles", "theme", "installer",
+                "main.py", "version.py", "localization.py", "icon.png"
+            ]
+            ignore_patterns = shutil.ignore_patterns(
+                "__pycache__", "*.pyc", "*.log", ".git*", "test_*.py", "scratch*", "build", "dist", ".tempmediaStorage"
+            )
+
+            root_dir = os.path.dirname(src_dir)
+            for i, item in enumerate(RUNTIME_ITEMS):
+                src_item = os.path.join(src_dir, item)
+                if not os.path.exists(src_item):
+                    src_item = os.path.join(root_dir, item)
+                if not os.path.exists(src_item):
+                    continue
+                dst_item = os.path.join(paths["app_dir"], item)
+                if os.path.abspath(src_item) == os.path.abspath(dst_item):
+                    continue
+                if os.path.isdir(src_item):
+                    if os.path.exists(dst_item):
+                        shutil.rmtree(dst_item)
+                    shutil.copytree(src_item, dst_item, ignore=ignore_patterns)
+                else:
+                    shutil.copy2(src_item, dst_item)
+                
+                p = 6 + int(16 * ((i + 1) / len(RUNTIME_ITEMS)))
+                report(p, 100, f"Deploying component: {item}...")
+                time.sleep(0.02)
+        else:
+            report(22, 100, "Core application files verified in target directory.")
 
         # Step 3: Standalone Python Runtime & Dependency Deployment (22% -> 78%)
         src_venv = os.path.join(src_dir, "venv")
         dst_venv = os.path.join(paths["app_dir"], "venv")
 
-        if os.path.exists(src_venv):
+        if not is_same_dir and os.path.exists(src_venv) and os.path.abspath(src_venv) != os.path.abspath(dst_venv):
             report(23, 100, "Analyzing standalone Qt6 & PySide6 runtime suite (~700 MB)...")
             # Collect file list for granular copy
             all_files = []
