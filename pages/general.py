@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QPushButton, QGridLayout
-from PySide6.QtCore import Qt, Signal, QThread
+from PySide6.QtCore import Qt, Signal, QThread, QObject
 from theme.colors import Colors
 from theme.typography import Typography
 from components.settings_group import SettingsGroup
@@ -12,51 +12,77 @@ from services.general_service import GeneralService
 from theme.manager import ThemeManager
 from theme.styler import fix_label_styles
 
-class UpdateCheckThread(QThread):
-    finished = Signal(int)
-    def __init__(self, service):
-        super().__init__()
-        self.service = service
-    def run(self):
-        count = self.service.check_updates()
-        self.finished.emit(count)
+import threading
 
-class OptionsLoaderThread(QThread):
+class UpdateCheckThread(QObject):
+    finished = Signal(int)
+    def __init__(self, service, parent=None):
+        super().__init__(parent)
+        self.service = service
+        self._is_stopped = False
+
+    def start(self):
+        def _worker():
+            try:
+                count = self.service.check_updates()
+                if not self._is_stopped:
+                    self.finished.emit(count)
+            except Exception:
+                pass
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+
+    def quit(self): self._is_stopped = True
+    def requestInterruption(self): self._is_stopped = True
+    def wait(self, timeout=None): pass
+    def isRunning(self): return False
+
+class OptionsLoaderThread(QObject):
     locales_ready = Signal(dict)
     timezones_ready = Signal(dict)
 
     def __init__(self, service, parent=None):
         super().__init__(parent)
         self.service = service
+        self._is_stopped = False
 
-    def run(self):
-        try:
-            locs = self.service.get_locales()
-            if locs:
-                self.locales_ready.emit(locs)
-        except Exception:
-            pass
+    def start(self):
+        def _worker():
+            try:
+                locs = self.service.get_locales()
+                if locs and not self._is_stopped:
+                    self.locales_ready.emit(locs)
+            except Exception:
+                pass
 
-        try:
-            from PySide6.QtCore import QTimeZone, QDateTime
-            tzs = self.service.get_all_timezones()
-            tz_dict = {}
-            now = QDateTime.currentDateTime()
-            for tz in tzs:
-                if self.isInterruptionRequested():
-                    return
-                try:
-                    qtz = QTimeZone(tz.encode('utf-8'))
-                    offset = qtz.offsetFromUtc(now) // 3600
-                    sign = "+" if offset >= 0 else ""
-                    city = tz.split("/")[-1].replace("_", " ")
-                    tz_dict[tz] = f"{city} (UTC{sign}{offset})"
-                except Exception:
-                    tz_dict[tz] = tz
-            if tz_dict and not self.isInterruptionRequested():
-                self.timezones_ready.emit(tz_dict)
-        except Exception:
-            pass
+            try:
+                from PySide6.QtCore import QTimeZone, QDateTime
+                tzs = self.service.get_all_timezones()
+                tz_dict = {}
+                now = QDateTime.currentDateTime()
+                for tz in tzs:
+                    if self._is_stopped:
+                        return
+                    try:
+                        qtz = QTimeZone(tz.encode('utf-8'))
+                        offset = qtz.offsetFromUtc(now) // 3600
+                        sign = "+" if offset >= 0 else ""
+                        city = tz.split("/")[-1].replace("_", " ")
+                        tz_dict[tz] = f"{city} (UTC{sign}{offset})"
+                    except Exception:
+                        tz_dict[tz] = tz
+                if tz_dict and not self._is_stopped:
+                    self.timezones_ready.emit(tz_dict)
+            except Exception:
+                pass
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+
+    def quit(self): self._is_stopped = True
+    def requestInterruption(self): self._is_stopped = True
+    def wait(self, timeout=None): pass
+    def isRunning(self): return False
 
 
 class ClickableRow(SettingsRow):
@@ -407,14 +433,28 @@ class GeneralPage(QWidget):
             self._hero.refresh(info)
 
     def cleanup(self):
-        if hasattr(self, '_options_loader') and self._options_loader and self._options_loader.isRunning():
-            self._options_loader.requestInterruption()
-            self._options_loader.quit()
-            self._options_loader.wait(1000)
-        if hasattr(self, 'update_thread') and self.update_thread and self.update_thread.isRunning():
-            self.update_thread.requestInterruption()
-            self.update_thread.quit()
-            self.update_thread.wait(1000)
+        if hasattr(self, '_options_loader') and self._options_loader:
+            try:
+                if self._options_loader.isRunning():
+                    self._options_loader.requestInterruption()
+                    self._options_loader.quit()
+                    self._options_loader.wait(500)
+            except Exception:
+                pass
+        if hasattr(self, 'update_thread') and self.update_thread:
+            try:
+                if self.update_thread.isRunning():
+                    self.update_thread.requestInterruption()
+                    self.update_thread.quit()
+                    self.update_thread.wait(500)
+            except Exception:
+                pass
+
+    def __del__(self):
+        try:
+            self.cleanup()
+        except Exception:
+            pass
 
     def closeEvent(self, event):
         self.cleanup()

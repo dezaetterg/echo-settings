@@ -35,6 +35,8 @@ class NotificationsBackend:
             pass
 
     def get_app_info(self, app_id):
+        if not app_id or not isinstance(app_id, str):
+            return None
         search_names = [f"{app_id}.desktop", f"{app_id.replace('-', '.')}.desktop"]
         
         dirs = [

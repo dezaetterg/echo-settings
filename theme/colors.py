@@ -49,12 +49,37 @@ class ThemeColors:
     
     DESTRUCTIVE = "#FF3B30"
 
+    # Common aliases for safety and backward compatibility
+    BORDER = DARK_CARD_BORDER
+    BORDER_LIGHT = DARK_CARD_BORDER
+    BORDER_SUBTLE = DARK_CARD_BORDER
+    ACCENT_COLOR = ACCENT_BLUE
+    TEXT_MUTED = DARK_TEXT_SECONDARY
+    TEXT_HINT = DARK_TEXT_TERTIARY
+    BG_CARD = DARK_CARD_BG
+    BG_WINDOW = DARK_WINDOW_BG
+
     @classmethod
     def get(cls, name):
         if hasattr(cls, name):
             return getattr(cls, name)
+        alias_map = {
+            "BORDER": "CARD_BORDER",
+            "BORDER_LIGHT": "CARD_BORDER",
+            "BORDER_SUBTLE": "CARD_BORDER",
+            "ACCENT_COLOR": "ACCENT_BLUE",
+            "TEXT_MUTED": "TEXT_SECONDARY",
+            "TEXT_HINT": "TEXT_TERTIARY",
+            "BG_CARD": "CARD_BG",
+            "BG_WINDOW": "WINDOW_BG",
+        }
+        actual_name = alias_map.get(name, name)
+        if hasattr(cls, actual_name):
+            return getattr(cls, actual_name)
         prefix = "DARK_" if ThemeManager.is_dark else "LIGHT_"
-        return getattr(cls, prefix + name)
+        if hasattr(cls, prefix + actual_name):
+            return getattr(cls, prefix + actual_name)
+        return "#007AFF"
 
 class _ColorsProxy:
     def __getattr__(self, name):

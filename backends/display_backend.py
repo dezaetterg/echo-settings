@@ -52,7 +52,47 @@ class DisplayBackend:
             if dbus_mons:
                 return dbus_mons
         # Fallback to xrandr (X11 / Cinnamon / Linux Mint / XFCE / MATE / etc.)
-        return self._get_xrandr_monitors()
+        xrandr_mons = self._get_xrandr_monitors()
+        if xrandr_mons:
+            return xrandr_mons
+        # Universal Qt Screen fallback (KDE Wayland / wlroots / VMs / generic)
+        return self._get_qt_monitors()
+
+    def _get_qt_monitors(self):
+        try:
+            from PySide6.QtGui import QGuiApplication
+            screens = QGuiApplication.screens()
+            if not screens:
+                return []
+            primary_screen = QGuiApplication.primaryScreen()
+            monitors = []
+            for s in screens:
+                geom = s.geometry()
+                w = geom.width()
+                h = geom.height()
+                rate = round(s.refreshRate(), 2) if s.refreshRate() > 0 else 60.0
+                scale = round(s.devicePixelRatio(), 2)
+                res_str = f"{w}x{h}"
+                name = s.name() if s.name() else "Display"
+                mon = MonitorModel(
+                    id=name,
+                    name=name,
+                    is_primary=(s == primary_screen),
+                    current_mode=res_str,
+                    current_rate=rate,
+                    resolutions=[res_str, "1920x1080", "1280x720"],
+                    rates={res_str: [rate, 60.0], "1920x1080": [60.0], "1280x720": [60.0]},
+                    x=geom.x(),
+                    y=geom.y(),
+                    width=w,
+                    height=h,
+                    orientation=0,
+                    scale=scale
+                )
+                monitors.append(mon)
+            return monitors
+        except Exception:
+            return []
 
     def _get_dbus_monitors(self):
         try:

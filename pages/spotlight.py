@@ -131,7 +131,7 @@ class SpotlightPage(QWidget):
         self.spotlight_cmd_code.setStyleSheet(f"""
             QLabel {{
                 background: rgba(0, 0, 0, 0.15);
-                border: 1px solid {Colors.BORDER_LIGHT};
+                border: 1px solid {Colors.CARD_BORDER};
                 border-radius: 6px;
                 padding: 4px 8px;
                 color: {Colors.TEXT_PRIMARY};
@@ -146,7 +146,7 @@ class SpotlightPage(QWidget):
         self.btn_copy_spotlight_cmd.setFixedHeight(28)
         self.btn_copy_spotlight_cmd.setStyleSheet(f"""
             QPushButton {{
-                background-color: {Colors.ACCENT_COLOR};
+                background-color: {Colors.ACCENT_BLUE};
                 color: #FFFFFF;
                 border: none;
                 border-radius: 6px;
