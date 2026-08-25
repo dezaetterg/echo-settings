@@ -6,7 +6,7 @@
 
 Центр управления и системных настроек для Linux на базе Qt 6 / PySide6
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg?style=flat-square)](https://github.com/dezaetterg/echo-settings/releases)
+[![Version](https://img.shields.io/badge/version-1.0.4-blue.svg?style=flat-square)](https://github.com/dezaetterg/echo-settings/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green.svg?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux-orange.svg?style=flat-square)](https://github.com/dezaetterg/echo-settings)
 [![Qt6](https://img.shields.io/badge/UI-Qt6%20%2F%20PySide6-brightgreen.svg?style=flat-square)](https://www.qt.io/)
@@ -96,7 +96,7 @@ chmod +x install.sh
 sudo apt install ~/Загрузки/echo-settings_*.deb || sudo apt install ~/Downloads/echo-settings_*.deb
 
 # Либо установка скачанного файла в текущей папке:
-sudo apt install ./echo-settings_1.0.3_amd64.deb
+sudo apt install ./echo-settings_1.0.4_amd64.deb
 ```
 
 ### 3. Arch Linux / Manjaro (PKGBUILD)

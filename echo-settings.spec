@@ -116,5 +116,5 @@ fi
 /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
 
 %changelog
-* Mon Aug 24 2026 Echo Contributors <https://github.com/dezaetterg/echo-settings> - 1.0.2-1
+* Mon Aug 24 2026 Echo Contributors <https://github.com/dezaetterg/echo-settings> - 1.0.4-1
 - Release 1.0.2 with welcome installer self-deletion fix and multi-distro support
