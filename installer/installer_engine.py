@@ -637,10 +637,10 @@ X-GNOME-Autostart-enabled=true
                 try:
                     # Free default Cinnamon switch-input-source and workspace conflicts for Super+Space
                     subprocess.run([
-                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source", "['XF86Keyboard']"
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source", "['']"
                     ], capture_output=True)
                     subprocess.run([
-                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source-backward", "['<Shift>XF86Keyboard']"
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source-backward", "['']"
                     ], capture_output=True)
                     subprocess.run([
                         "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-to-workspace-left", "['']"
