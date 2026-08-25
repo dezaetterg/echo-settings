@@ -3,8 +3,8 @@
 ## Environment
 * Host OS: Linux (PikaOS / Debian base)
 * Kernel: 7.1.8-pikaos x86_64
-* Active Desktop Environment: GNOME 48
-* Display Server: Wayland (wayland-0) with XWayland (:0)
+* Verified Desktop Environments: GNOME 48 (Wayland / XWayland), Cinnamon Desktop
+* Unverified Desktop Environments: KDE Plasma, XFCE, Hyprland / Sway
 * Python Runtime: 3.14.7 (Host) & PySide6 venv (Python 3.14.7)
 * GUI Toolkits: PySide6 6.11.2 (Echo Settings) / GTK 4.0 with Libadwaita 1.9.0 (Echo Search)
 * Hardware: AMD Ryzen 5 5600 6-Core Processor, 32 GB RAM, NVIDIA GeForce RTX 4060
@@ -27,8 +27,8 @@
 | Localization Coverage | Central dictionaries (588 keys) | STATIC ANALYSIS | Python dictionary validator | PASS (13/13 languages) |
 | Virtualenv Dependencies | Echo Settings user venv | EXECUTED | /home/demid/.local/share/echo-settings/venv | PASS (All modules loaded) |
 | Package Metadata (.deb / Arch) | dpkg-deb and tar table inspection | EXECUTED | Host Linux package tools | PASS (Version 1.0.7 / 1.0.3) |
+| Cinnamon Desktop Session | Muffin, Cinnamon GSettings, shortcuts | EXECUTED | Verified in Cinnamon environment | PASS |
 | Native KDE Plasma Session | KWin / KDE system services | NOT EXECUTED | Requires native KDE session login | NOT EXECUTED |
-| Native Cinnamon Session | Muffin / Cinnamon system services | NOT EXECUTED | Requires native Cinnamon session login | NOT EXECUTED |
 | Native XFCE Session | XFCE / xfwm4 system services | NOT EXECUTED | Requires native XFCE session login | NOT EXECUTED |
 | Physical Bluetooth Pairing | External Bluetooth peripherals | NOT EXECUTED | Requires external pairing hardware | NOT EXECUTED |
 | Destructive Power / Reboot | System poweroff / session kill | NOT EXECUTED | Destructive to host system | NOT EXECUTED |
@@ -73,9 +73,10 @@
 5. `Rapid window close`: Verified across 5 immediate destruction cycles.
 6. `Light / Dark mode`: Verified dynamic switching without UI desync.
 7. `GNOME Wayland`: Verified native Wayland display integration.
-8. `Stderr warnings`: 0 warnings emitted on both applications.
-9. `Debian package metadata`: Verified valid control files and version tags (1.0.3 / 1.0.7).
-10. `Virtualenv dependencies`: PySide6, psutil, dbus_next, jeepney, rapidfuzz verified.
+8. `Cinnamon Desktop`: Verified in Cinnamon environment.
+9. `Stderr warnings`: 0 warnings emitted on both applications.
+10. `Debian package metadata`: Verified valid control files and version tags (1.0.3 / 1.0.7).
+11. `Virtualenv dependencies`: PySide6, psutil, dbus_next, jeepney, rapidfuzz verified.
 
 ---
 
