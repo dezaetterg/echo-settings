@@ -1,25 +1,30 @@
 """
-Unified Localization System for Echo Settings.
+Unified Localization System for Echo Settings & Echo Installer.
 Provides reactive strings in all supported languages with fallback to English.
 """
 
-from typing import Dict, Any
+import os
+import locale
+from typing import Dict, Any, Optional
+from PySide6.QtCore import QObject, Signal, QSettings
 
-LANGUAGES = {
-    "ru": "Русский",
-    "en": "English",
-    "de": "Deutsch",
-    "fr": "Français",
-    "es": "Español",
-    "it": "Italiano",
-    "pt_BR": "Português (Brasil)",
-    "zh_CN": "简体中文",
-    "ja": "日本語",
-    "tr": "Türkçe",
-    "uk": "Українська",
-    "kk": "Қазақша",
-    "ar": "العربية"
+SUPPORTED_LANGUAGES = {
+    "ru": {"name": "Russian", "native": "Русский", "code": "ru"},
+    "en": {"name": "English", "native": "English", "code": "en"},
+    "es": {"name": "Spanish", "native": "Español", "code": "es"},
+    "de": {"name": "German", "native": "Deutsch", "code": "de"},
+    "fr": {"name": "French", "native": "Français", "code": "fr"},
+    "zh_CN": {"name": "Chinese", "native": "简体中文", "code": "zh_CN"},
+    "ja": {"name": "Japanese", "native": "日本語", "code": "ja"},
+    "it": {"name": "Italian", "native": "Italiano", "code": "it"},
+    "pt_BR": {"name": "Portuguese", "native": "Português", "code": "pt_BR"},
+    "tr": {"name": "Turkish", "native": "Türkçe", "code": "tr"},
+    "uk": {"name": "Ukrainian", "native": "Українська", "code": "uk"},
+    "kk": {"name": "Kazakh", "native": "Қазақша", "code": "kk"},
+    "ar": {"name": "Arabic", "native": "العربية", "code": "ar"}
 }
+
+LANGUAGES = {code: data["native"] for code, data in SUPPORTED_LANGUAGES.items()}
 
 TRANSLATIONS: Dict[str, Dict[str, str]] = {'appearance.accent_color': {'ar': 'لون التمييز',
                              'de': 'AKZENTFARBE',
@@ -8081,64 +8086,111 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {'appearance.accent_color': {'ar': 'ل
                              'uk': 'Авто 24г',
                              'zh_CN': '自动跟随时间'}}
 
-class LocalizationManager:
+class I18nManager(QObject):
+    language_changed = Signal(str)
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._current_lang = "en"
-            cls._instance._detect_system_lang()
+            cls._instance = super(I18nManager, cls).__new__(cls)
+            cls._instance._initialized = False
         return cls._instance
 
-    def _detect_system_lang(self):
-        import locale
-        import os
-        
+    def __init__(self):
+        if getattr(self, '_initialized', False):
+            return
+        super().__init__()
+        self._initialized = True
+        self._current_lang = self._load_saved_or_system_language()
+
+    def _load_saved_or_system_language(self) -> str:
         # 1. Check custom override
         env_lang = os.environ.get("ECHO_LANG")
-        if env_lang and env_lang in LANGUAGES:
-            self._current_lang = env_lang
-            return
-            
-        # 2. Check system locale
+        if env_lang and env_lang in SUPPORTED_LANGUAGES:
+            return env_lang
+
+        # 2. Try loading from QSettings (TahoeSettings and EchoSettings)
         try:
-            loc = locale.getdefaultlocale()[0]
-            if loc:
-                for code in LANGUAGES:
-                    if loc.startswith(code) or (code == "zh_CN" and "zh" in loc.lower()) or (code == "pt_BR" and "pt" in loc.lower()):
-                        self._current_lang = code
-                        return
+            for org in ("EchoSettings", "TahoeSettings"):
+                settings = QSettings(org, "App")
+                saved = settings.value("language", None)
+                if saved and saved in SUPPORTED_LANGUAGES:
+                    return saved
         except Exception:
             pass
+
+        # 3. Try auto-detecting system locale
+        try:
+            loc = os.environ.get("LC_MESSAGES", "") or os.environ.get("LANG", "")
+            if not loc:
+                loc = locale.getdefaultlocale()[0] or "en"
             
-        self._current_lang = "en"
+            loc_lower = loc.lower()
+            if loc_lower.startswith("ru"): return "ru"
+            if loc_lower.startswith("es"): return "es"
+            if loc_lower.startswith("de"): return "de"
+            if loc_lower.startswith("fr"): return "fr"
+            if "zh" in loc_lower: return "zh_CN"
+            if loc_lower.startswith("ja"): return "ja"
+            if loc_lower.startswith("it"): return "it"
+            if "pt" in loc_lower: return "pt_BR"
+            if loc_lower.startswith("tr"): return "tr"
+            if loc_lower.startswith("uk"): return "uk"
+            if loc_lower.startswith("kk"): return "kk"
+            if loc_lower.startswith("ar"): return "ar"
+        except Exception:
+            pass
+
+        return "en"
+
+    @property
+    def current_language(self) -> str:
+        return self._current_lang
 
     def get_language(self) -> str:
         return self._current_lang
 
     def set_language(self, lang_code: str):
-        if lang_code in LANGUAGES:
+        if lang_code in SUPPORTED_LANGUAGES and lang_code != self._current_lang:
             self._current_lang = lang_code
+            try:
+                for org in ("EchoSettings", "TahoeSettings"):
+                    settings = QSettings(org, "App")
+                    settings.setValue("language", lang_code)
+            except Exception:
+                pass
+            self.language_changed.emit(lang_code)
 
-    def get(self, key: str, fallback: str = "") -> str:
+    def t(self, key: str, default: Optional[str] = None, **kwargs) -> str:
+        """Translates a key into the current active language."""
         if key in TRANSLATIONS:
             lang_dict = TRANSLATIONS[key]
-            if self._current_lang in lang_dict:
-                return lang_dict[self._current_lang]
-            if "en" in lang_dict:
-                return lang_dict["en"]
-            if "ru" in lang_dict:
-                return lang_dict["ru"]
-        return fallback if fallback else key
+            text = lang_dict.get(self._current_lang) or lang_dict.get("en") or lang_dict.get("ru") or (default if default is not None else key)
+            if kwargs:
+                try:
+                    text = text.format(**kwargs)
+                except Exception:
+                    pass
+            return text
+        return default if default is not None else key
 
-_loc_manager = LocalizationManager()
+    def get(self, key: str, fallback: str = "") -> str:
+        return self.t(key, fallback)
 
-def t(key: str, fallback: str = "") -> str:
-    return _loc_manager.get(key, fallback)
+
+# Global singleton instance and aliases
+i18n = I18nManager()
+Localization = i18n
+Localization.get = i18n.t
+LocalizationManager = I18nManager
+
+def t(key: str, default: Optional[str] = None, **kwargs) -> str:
+    return i18n.t(key, default, **kwargs)
+
+tr = t
 
 def set_lang(lang_code: str):
-    _loc_manager.set_language(lang_code)
+    i18n.set_language(lang_code)
 
 def get_lang() -> str:
-    return _loc_manager.get_language()
+    return i18n.get_language()

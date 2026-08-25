@@ -44,7 +44,8 @@ mkdir -p "$BIN_DIR"
 mkdir -p "$DESKTOP_DIR"
 
 # 2. Copy application components safely
-pkill -9 -f "echo-settings" 2>/dev/null || true
+pkill -9 -f "python.*echo-settings" 2>/dev/null || true
+rm -rf "$APP_DIR/__pycache__" "$APP_DIR"/*/__pycache__ "$APP_DIR"/*/*/__pycache__ 2>/dev/null || true
 echo -e "${BLUE}[1/5]${RESET} Копирование файлов приложения..."
 rsync -a     --exclude '__pycache__'     --exclude '*.pyc'     --exclude '*.log'     --exclude '.git*'     --exclude 'venv'     --exclude 'build'     --exclude 'dist'     --exclude '*.deb'     --exclude '.vscode'     "$SRC_DIR/" "$APP_DIR/"
 
