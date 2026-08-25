@@ -635,6 +635,13 @@ X-GNOME-Autostart-enabled=true
             if shutil.which("gsettings"):
                 # Cinnamon
                 try:
+                    # Free default Cinnamon switch-input-source and workspace conflicts for Super+Space
+                    subprocess.run([
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source", "['XF86Keyboard']"
+                    ], capture_output=True)
+                    subprocess.run([
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-input-source-backward", "['<Shift>XF86Keyboard']"
+                    ], capture_output=True)
                     subprocess.run([
                         "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-to-workspace-left", "['']"
                     ], capture_output=True)
@@ -656,7 +663,7 @@ X-GNOME-Autostart-enabled=true
                     slot_path = f"/org/cinnamon/desktop/keybindings/custom-keybindings/{found_slot}/"
                     subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "name", "Echo Search"], capture_output=True)
                     subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "command", es_bin_file], capture_output=True)
-                    subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "binding", "['<Super>space']"], capture_output=True)
+                    subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "binding", "['<Super>space', '<Super>Cyrillic_em']"], capture_output=True)
                     if found_slot not in c_list_res:
                         if not c_list_res or c_list_res in ("@as []", "[]", "''"):
                             new_list = f"['{found_slot}']"
