@@ -3,8 +3,12 @@ import os
 import logging
 
 candidate_paths = [
-    os.path.expanduser("~/.local/share/spotlight-glass"),
+    os.path.expanduser("~/.local/share/echo-search"),
     os.path.expanduser("~/echo_search"),
+    os.path.expanduser("~/spotlight_liquidglass"),
+    os.path.expanduser("~/.local/share/spotlight-glass"),
+    "/usr/share/echo-search",
+    "/usr/local/share/echo-search",
     "/usr/local/share/spotlight-glass",
     "/usr/share/spotlight-glass"
 ]
@@ -35,11 +39,13 @@ class SpotlightSettingsService:
             return True
         # 2. Check standard installation binaries
         binary_candidates = [
+            os.path.expanduser("~/.local/bin/echo-search"),
             "/usr/bin/echo-search",
             "/usr/local/bin/echo-search",
-            os.path.expanduser("~/.local/bin/echo-search"),
-            os.path.expanduser("~/.local/share/spotlight-glass/main.py"),
+            os.path.expanduser("~/.local/share/echo-search/main.py"),
             os.path.expanduser("~/echo_search/main.py"),
+            os.path.expanduser("~/.local/share/spotlight-glass/main.py"),
+            "/usr/share/echo-search/main.py",
             "/usr/share/spotlight-glass/main.py",
             "/usr/local/share/spotlight-glass/main.py"
         ]

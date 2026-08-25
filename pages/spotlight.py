@@ -353,14 +353,17 @@ class SpotlightPage(QWidget):
         
         # Theme
         opts = [
-            ("system", t("appearance.auto", "Auto")),
-            ("light", t("appearance.light", "Light")),
-            ("dark", t("appearance.dark", "Dark"))
+            ("dark_glass", t("search.theme_dark_glass", "Dark Glass")),
+            ("light_glass", t("search.theme_light_glass", "Light Glass")),
+            ("dark", t("appearance.dark", "Dark")),
+            ("light", t("appearance.light", "Light"))
         ]
-        current_theme = self.service.get("theme") or "system"
+        current_theme = self.service.get("theme") or "dark_glass"
+        if current_theme == "silver":
+            current_theme = "dark_glass"
         self.seg_theme = SegmentedControl(opts, current_theme)
-        self.seg_theme.setFixedWidth(260)
-        self.seg_theme.valueChanged.connect(lambda v: self.service.set("theme", v))
+        self.seg_theme.setFixedWidth(360)
+        self.seg_theme.valueChanged.connect(self._on_theme_changed)
         self.group_appearance.add_row(SettingsRow(t("search.theme", "Theme"), self.seg_theme, show_separator=True))
         
         # Transparency
@@ -395,6 +398,24 @@ class SpotlightPage(QWidget):
         self.group_appearance.add_row(SettingsRow(t("search.animations", "Animations"), self.sw_anim, show_separator=False))
         
         self.layout.addWidget(self.group_appearance)
+
+    def _on_theme_changed(self, theme_code: str):
+        self.service.set("theme", theme_code)
+        if theme_code in ("dark_glass", "light_glass"):
+            self.service.set("transparency", 0.60)
+            self.service.set("blur", True)
+            if hasattr(self, 'slider_trans'):
+                self.slider_trans.blockSignals(True)
+                self.slider_trans.setValue(60)
+                self.lbl_trans_val.setText("60%")
+                self.slider_trans.blockSignals(False)
+        elif theme_code in ("dark", "light"):
+            self.service.set("transparency", 0.15)
+            if hasattr(self, 'slider_trans'):
+                self.slider_trans.blockSignals(True)
+                self.slider_trans.setValue(15)
+                self.lbl_trans_val.setText("15%")
+                self.slider_trans.blockSignals(False)
 
     def _build_preview_section(self):
         from localization import t
@@ -512,8 +533,10 @@ class SpotlightPage(QWidget):
 
         if hasattr(self, 'seg_theme'):
             self.seg_theme.blockSignals(True)
-            current_theme = self.service.get("theme") or "system"
-            opts = [("system", "System"), ("light", "Light"), ("dark", "Dark")]
+            current_theme = self.service.get("theme") or "dark_glass"
+            if current_theme == "silver":
+                current_theme = "dark_glass"
+            opts = [("dark_glass", "Dark Glass"), ("light_glass", "Light Glass"), ("dark", "Dark"), ("light", "Light")]
             idx = next((i for i, opt in enumerate(opts) if opt[0] == current_theme), 0)
             self.seg_theme.set_active_index(idx)
             self.seg_theme.blockSignals(False)

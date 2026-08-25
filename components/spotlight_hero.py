@@ -105,11 +105,12 @@ class SpotlightHero(QWidget):
         
     def _launch(self):
         candidates = [
-            os.path.expanduser('~/.local/share/spotlight-glass/main.py'),
-            os.path.expanduser('~/echo_search/main.py'),
             os.path.expanduser('~/.local/bin/echo-search'),
+            os.path.expanduser('~/.local/share/echo-search/main.py'),
+            os.path.expanduser('~/echo_search/main.py'),
             '/usr/local/bin/echo-search',
-            '/usr/bin/echo-search'
+            '/usr/bin/echo-search',
+            os.path.expanduser('~/.local/share/spotlight-glass/main.py')
         ]
         for c in candidates:
             if os.path.exists(c):
@@ -118,7 +119,7 @@ class SpotlightHero(QWidget):
                 else:
                     subprocess.Popen([c])
                 return
-        subprocess.Popen(['python3', os.path.expanduser('~/.local/share/spotlight-glass/main.py')])
+        subprocess.Popen(['python3', os.path.expanduser('~/echo_search/main.py')])
 
         
     def _format_shortcut(self, shortcut):
