@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QScrollArea, QHBoxLayout, QStackedWidget, QPushButton
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt, QUrl, QTimer
 from PySide6.QtGui import QDesktopServices
 
 from components.shortcut_input import ShortcutInput
@@ -324,8 +324,12 @@ class SpotlightPage(QWidget):
         self.slider_limit = Slider(Qt.Horizontal)
         self.slider_limit.setRange(5, 50)
         self.slider_limit.setValue(self.service.get("results_limit") or 20)
-        self.slider_limit.valueChanged.connect(lambda v: self.service.set("results_limit", v))
         self.slider_limit.setFixedWidth(150)
+        
+        self.limit_timer = QTimer(self)
+        self.limit_timer.setSingleShot(True)
+        self.limit_timer.setInterval(200)
+        self.limit_timer.timeout.connect(lambda: self.service.set("results_limit", self.slider_limit.value()))
         
         limit_layout = QHBoxLayout()
         limit_layout.setSpacing(10)
@@ -333,7 +337,7 @@ class SpotlightPage(QWidget):
         self.lbl_limit_val = QLabel(str(self.slider_limit.value()))
         self.lbl_limit_val.setFixedWidth(40)
         self.lbl_limit_val.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.slider_limit.valueChanged.connect(lambda v: self.lbl_limit_val.setText(str(v)))
+        self.slider_limit.valueChanged.connect(lambda v: (self.lbl_limit_val.setText(str(v)), self.limit_timer.start()))
         limit_layout.addWidget(self.lbl_limit_val)
         
         limit_widget = QWidget()
@@ -372,8 +376,12 @@ class SpotlightPage(QWidget):
         trans_val = self.service.get("transparency")
         if trans_val is None: trans_val = 0.7
         self.slider_trans.setValue(int(trans_val * 100))
-        self.slider_trans.valueChanged.connect(lambda v: self.service.set("transparency", v / 100.0))
         self.slider_trans.setFixedWidth(150)
+        
+        self.trans_timer = QTimer(self)
+        self.trans_timer.setSingleShot(True)
+        self.trans_timer.setInterval(200)
+        self.trans_timer.timeout.connect(lambda: self.service.set("transparency", self.slider_trans.value() / 100.0))
         
         trans_layout = QHBoxLayout()
         trans_layout.setSpacing(10)
@@ -381,7 +389,7 @@ class SpotlightPage(QWidget):
         self.lbl_trans_val = QLabel(f"{self.slider_trans.value()}%")
         self.lbl_trans_val.setFixedWidth(40)
         self.lbl_trans_val.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.slider_trans.valueChanged.connect(lambda v: self.lbl_trans_val.setText(f"{v}%"))
+        self.slider_trans.valueChanged.connect(lambda v: (self.lbl_trans_val.setText(f"{v}%"), self.trans_timer.start()))
         trans_layout.addWidget(self.lbl_trans_val)
         
         trans_widget = QWidget()
