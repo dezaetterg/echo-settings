@@ -5,12 +5,27 @@ from theme.colors import Colors
 from theme.typography import Typography
 from theme.manager import ThemeManager
 from theme.metrics import CARD_RADIUS
+from theme.glass_shimmer import GlassShimmerHelper
 
 class BaseNetworkCard(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setMouseTracking(True)
+        self.shimmer = GlassShimmerHelper(self)
         self.setMinimumHeight(60)
+
+    def enterEvent(self, event):
+        self.shimmer.handle_enter(event)
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self.shimmer.handle_leave(event)
+        super().leaveEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.shimmer.handle_mouse_move(event)
+        super().mouseMoveEvent(event)
         
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -35,6 +50,9 @@ class BaseNetworkCard(QWidget):
         painter.setPen(QPen(border_color, 1))
         painter.drawPath(bg_path)
 
+        # Dynamic specular edge sheen and ambient surface spotlight
+        self.shimmer.paint_shimmer(painter, QRectF(self.rect().adjusted(0, 0, 0, -4)), CARD_RADIUS, is_dark)
+
 class SummaryIcon(QWidget):
     def __init__(self, icon_type, parent=None):
         super().__init__(parent)
@@ -45,360 +63,269 @@ class SummaryIcon(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         
-        color = QColor(Colors.TEXT_SECONDARY)
-        p.setPen(QPen(color, 1.5))
+        icon_color = QColor(Colors.TEXT_SECONDARY)
+        p.setPen(QPen(icon_color, 1.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         p.setBrush(Qt.NoBrush)
         
-        cx, cy = self.width()/2, self.height()/2
-        if self.icon_type == 'Active Connection':
-            p.drawEllipse(cx-6, cy-6, 12, 12)
-            p.drawEllipse(cx-2, cy-2, 4, 4)
-        elif self.icon_type == 'Local IPv4':
-            p.drawRect(cx-7, cy-5, 14, 10)
-            p.drawLine(cx-3, cy+5, cx-3, cy+7)
-            p.drawLine(cx+3, cy+5, cx+3, cy+7)
-            p.drawLine(cx-5, cy+7, cx+5, cy+7)
-        elif self.icon_type == 'Internet Status':
-            p.drawArc(cx-8, cy-2, 16, 16, 45*16, 90*16)
-            p.drawArc(cx-5, cy+1, 10, 10, 45*16, 90*16)
-            p.setBrush(color)
-            p.drawEllipse(cx-1, cy+5, 2, 2)
-        elif self.icon_type == 'VPN Status':
-            p.drawRoundedRect(cx-5, cy-2, 10, 7, 2, 2)
-            p.drawArc(cx-3, cy-6, 6, 8, 0, 180*16)
+        if self.icon_type == "wifi":
+            p.drawArc(2, 4, 16, 16, 45 * 16, 90 * 16)
+            p.drawArc(5, 7, 10, 10, 45 * 16, 90 * 16)
+            p.drawArc(8, 10, 4, 4, 45 * 16, 90 * 16)
+            p.setBrush(icon_color)
+            p.drawEllipse(9, 13, 2, 2)
+        elif self.icon_type == "ethernet":
+            p.drawRoundedRect(3, 4, 14, 12, 2, 2)
+            p.drawLine(7, 16, 13, 16)
+            p.drawLine(10, 16, 10, 18)
+            p.drawLine(6, 8, 8, 8)
+            p.drawLine(9, 8, 11, 8)
+            p.drawLine(12, 8, 14, 8)
 
 class NetworkSummaryCard(BaseNetworkCard):
-    def __init__(self, status: dict, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(20, 16, 20, 20)
+        self.layout.setSpacing(16)
+        
+        self.icon_widget = SummaryIcon("wifi", self)
+        self.layout.addWidget(self.icon_widget)
+        
         from localization import t
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 28, 24, 28)
-        layout.setSpacing(20)
+        self.status_lbl = QLabel(t("network.connected_wifi", "Connected to Wi-Fi"))
+        self.status_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_BODY}px; font-weight: {Typography.WEIGHT_MEDIUM};")
+        self.layout.addWidget(self.status_lbl)
         
-        title = QLabel(t("network.summary", "Network Summary"))
-        title.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_TITLE}px; font-weight: {Typography.WEIGHT_SEMIBOLD};")
-        layout.addWidget(title)
+        self.layout.addStretch()
         
-        info_layout = QVBoxLayout()
-        info_layout.setSpacing(16)
+        ThemeManager.theme_changed.connect(self.update_style)
         
-        self._add_row(info_layout, "Active Connection", t("network.active_conn", "Active Connection"), status.get("active_connection", "None"))
-        self._add_row(info_layout, "Local IPv4", t("network.local_ip", "Local IPv4"), status.get("local_ip", "Unavailable"))
+    def update_style(self, _is_dark=False):
+        self.status_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_BODY}px; font-weight: {Typography.WEIGHT_MEDIUM};")
+        self.update()
         
-        internet = status.get("internet", "Unknown")
-        int_color = Colors.ACCENT_BLUE if internet == "Full" else Colors.TEXT_PRIMARY
-        self._add_row(info_layout, "Internet Status", t("network.internet_status", "Internet Status"), internet, val_color=int_color)
+    def set_status(self, is_connected: bool, is_wifi: bool = True, network_name: str = ""):
+        self.icon_widget.icon_type = "wifi" if is_wifi else "ethernet"
+        self.icon_widget.update()
         
-        is_vpn = status.get("vpn_active", False)
-        vpn = t("network.connected", "Connected") if is_vpn else t("network.not_connected", "Not Connected")
-        vpn_color = Colors.ACCENT_BLUE if is_vpn else Colors.TEXT_PRIMARY
-        self._add_row(info_layout, "VPN Status", t("network.vpn_status", "VPN Status"), vpn, val_color=vpn_color)
-        
-        layout.addLayout(info_layout)
-        
-    def _add_row(self, layout, icon_type, label_text, val_text, val_color=None):
-        if val_color is None:
-            val_color = Colors.TEXT_PRIMARY
-        row = QHBoxLayout()
-        row.setSpacing(12)
-        
-        icon = SummaryIcon(icon_type)
-        row.addWidget(icon)
-        
-        lbl = QLabel(label_text.upper())
-        lbl.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.SIZE_SMALL}px; font-weight: {Typography.WEIGHT_SEMIBOLD}; letter-spacing: 0.5px;")
-        
-        val = QLabel(val_text)
-        val.setStyleSheet(f"color: {val_color}; font-size: {Typography.SIZE_BODY}px; font-weight: {Typography.WEIGHT_NORMAL};")
-        val.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        
-        row.addWidget(lbl)
-        row.addStretch()
-        row.addWidget(val)
-        layout.addLayout(row)
+        from localization import t
+        if is_connected:
+            if network_name:
+                self.status_lbl.setText(network_name)
+            else:
+                self.status_lbl.setText(t("network.connected_wifi", "Connected to Wi-Fi") if is_wifi else t("network.connected_eth", "Connected to Ethernet"))
+        else:
+            self.status_lbl.setText(t("network.not_connected", "Not Connected"))
 
 class GearButton(QPushButton):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(30, 30)
+        self.setFixedSize(28, 28)
         self.setCursor(Qt.PointingHandCursor)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
         self._hover_alpha = 0.0
         self.anim = QPropertyAnimation(self, b"hover_alpha")
-        self.anim.setDuration(150)
-
+        self.anim.setDuration(120)
+        
     @Property(float)
     def hover_alpha(self):
         return self._hover_alpha
         
     @hover_alpha.setter
-    def hover_alpha(self, v):
-        self._hover_alpha = v
+    def hover_alpha(self, val):
+        self._hover_alpha = val
         self.update()
-
+        
     def enterEvent(self, event):
-        self.anim.setDirection(QPropertyAnimation.Forward)
+        self.anim.stop()
         self.anim.setStartValue(self._hover_alpha)
         self.anim.setEndValue(1.0)
         self.anim.start()
         super().enterEvent(event)
-
+        
     def leaveEvent(self, event):
-        self.anim.setDirection(QPropertyAnimation.Backward)
+        self.anim.stop()
         self.anim.setStartValue(self._hover_alpha)
         self.anim.setEndValue(0.0)
         self.anim.start()
         super().leaveEvent(event)
-
+        
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         
         if self._hover_alpha > 0:
-            bg_c = QColor(128, 128, 128, int(30 * self._hover_alpha))
-            p.setBrush(bg_c)
+            is_dark = ThemeManager.is_dark
+            bg = QColor(255, 255, 255, int(25 * self._hover_alpha)) if is_dark else QColor(0, 0, 0, int(15 * self._hover_alpha))
+            p.setBrush(bg)
             p.setPen(Qt.NoPen)
-            p.drawRoundedRect(self.rect(), 8, 8)
+            p.drawRoundedRect(self.rect(), 6, 6)
             
-        color = QColor(Colors.TEXT_SECONDARY)
-        if self._hover_alpha > 0:
-            color = QColor(Colors.TEXT_PRIMARY)
-            
-        p.setPen(QPen(color, 1.5))
+        icon_color = QColor(Colors.TEXT_SECONDARY)
+        p.setPen(QPen(icon_color, 1.3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         p.setBrush(Qt.NoBrush)
         
-        cx, cy = self.rect().center().x(), self.rect().center().y()
+        center_x = self.width() / 2.0
+        center_y = self.height() / 2.0
+        r_inner = 3.0
+        r_outer = 5.5
         
-        # Apply slight scale on hover for micro-interaction
-        scale = 1.0 + (0.05 * self._hover_alpha)
-        if self.isDown(): scale = 0.95
-        p.translate(cx, cy)
-        p.scale(scale, scale)
-        p.translate(-cx, -cy)
+        p.drawEllipse(QPointF(center_x, center_y), r_inner, r_inner)
         
-        p.drawEllipse(cx-4, cy-4, 8, 8)
-        p.setPen(QPen(color, 1.5, Qt.DashLine))
-        p.drawEllipse(cx-6, cy-6, 12, 12)
+        import math
+        for i in range(6):
+            angle = i * (math.pi / 3.0)
+            x1 = center_x + math.cos(angle) * (r_inner + 0.5)
+            y1 = center_y + math.sin(angle) * (r_inner + 0.5)
+            x2 = center_x + math.cos(angle) * r_outer
+            y2 = center_y + math.sin(angle) * r_outer
+            p.drawLine(QPointF(x1, y1), QPointF(x2, y2))
 
 class IconWidget(QWidget):
-    def __init__(self, icon_type, parent=None):
+    def __init__(self, is_wifi=True, parent=None):
         super().__init__(parent)
         self.setFixedSize(36, 36)
-        self.icon_type = icon_type
+        self.is_wifi = is_wifi
         
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
         
-        color = QColor(Colors.TEXT_PRIMARY)
-        p.setPen(QPen(color, 1.5))
+        bg_color = QColor(Colors.ACCENT_BLUE)
+        p.setBrush(bg_color)
+        p.setPen(Qt.NoPen)
+        p.drawRoundedRect(self.rect(), 8, 8)
+        
+        p.setPen(QPen(Qt.white, 1.5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         p.setBrush(Qt.NoBrush)
         
-        cx, cy = self.width()/2, self.height()/2
-        
-        if self.icon_type == 'ethernet':
-            p.drawRect(cx-9, cy-7, 18, 12)
-            p.drawLine(cx-4, cy+5, cx-4, cy+10)
-            p.drawLine(cx+4, cy+5, cx+4, cy+10)
-            p.drawLine(cx-7, cy+10, cx+7, cy+10)
-        elif self.icon_type == 'wifi':
-            p.drawArc(cx-12, cy-5, 24, 24, 45*16, 90*16)
-            p.drawArc(cx-8, cy-1, 16, 16, 45*16, 90*16)
-            p.drawArc(cx-4, cy+3, 8, 8, 45*16, 90*16)
-            p.setBrush(color)
-            p.drawEllipse(cx-2, cy+7, 4, 4)
+        if self.is_wifi:
+            p.drawArc(10, 12, 16, 16, 45 * 16, 90 * 16)
+            p.drawArc(13, 15, 10, 10, 45 * 16, 90 * 16)
+            p.drawArc(16, 18, 4, 4, 45 * 16, 90 * 16)
+            p.setBrush(Qt.white)
+            p.drawEllipse(17, 21, 2, 2)
         else:
-            p.drawRoundedRect(cx-7, cy-2, 14, 9, 2, 2)
-            p.drawArc(cx-5, cy-8, 10, 12, 0, 180*16)
+            p.drawRoundedRect(11, 12, 14, 12, 2, 2)
+            p.drawLine(15, 24, 21, 24)
+            p.drawLine(18, 24, 18, 26)
+            p.drawLine(14, 16, 16, 16)
+            p.drawLine(17, 16, 19, 16)
+            p.drawLine(20, 16, 22, 16)
 
 class InterfaceCard(BaseNetworkCard):
-    details_clicked = Signal(str, str) # interface, name
-
-    def __init__(self, interface: str, name: str, active: bool, ipv4: str, speed: str, icon_type: str, mac: str = "Unavailable", parent=None):
+    def __init__(self, is_wifi: bool = True, parent=None):
         super().__init__(parent)
-        self.interface = interface
-        self.name = name
-        self.ipv4 = ipv4
-        self.mac = mac
-        self.setCursor(Qt.PointingHandCursor)
+        self.is_wifi = is_wifi
+        self.menu_actions = []
         
-        self._hover_alpha = 0.0
-        self.hover_anim = QPropertyAnimation(self, b"hover_alpha")
-        self.hover_anim.setDuration(150)
-        self.hover_anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(16, 12, 16, 16)
+        self.layout.setSpacing(14)
         
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 20)
-        layout.setSpacing(16)
+        self.icon_widget = IconWidget(is_wifi=self.is_wifi, parent=self)
+        self.layout.addWidget(self.icon_widget)
         
-        # Icon
-        layout.addWidget(IconWidget(icon_type))
+        self.info_layout = QVBoxLayout()
+        self.info_layout.setSpacing(2)
+        self.info_layout.setAlignment(Qt.AlignVCenter)
         
-        # Middle text
-        text_layout = QVBoxLayout()
-        text_layout.setSpacing(4)
-        text_layout.setAlignment(Qt.AlignVCenter)
+        self.name_lbl = QLabel("Wi-Fi" if is_wifi else "Ethernet")
+        self.name_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_BODY}px; font-weight: {Typography.WEIGHT_MEDIUM};")
         
-        name_lbl = QLabel(name)
-        name_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_TITLE}px; font-weight: {Typography.WEIGHT_MEDIUM};")
-        text_layout.addWidget(name_lbl)
-        
-        nic_type = icon_type.title() if icon_type else "Connection"
-        info_str = f"IPv4 • {ipv4}"
-        if speed != "Unavailable":
-            info_str += f"   {speed} {nic_type}"
-            
-        info_lbl = QLabel(info_str)
-        info_lbl.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: {Typography.SIZE_BODY}px; font-weight: 400;")
-        text_layout.addWidget(info_lbl)
-        
-        layout.addLayout(text_layout)
-        layout.addStretch()
-        
-        # Context Menu
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self._show_context_menu)
-        
-        # Right Side (Status + Gear)
-        right_layout = QHBoxLayout()
-        right_layout.setSpacing(12)
-        
-        # Green/Gray dot + Status
-        status_layout = QHBoxLayout()
-        status_layout.setSpacing(6)
+        self.status_container = QHBoxLayout()
+        self.status_container.setSpacing(6)
+        self.status_container.setAlignment(Qt.AlignLeft)
         
         class DotWidget(QWidget):
-            def __init__(self, active):
-                super().__init__()
+            def __init__(self, parent=None):
+                super().__init__(parent)
                 self.setFixedSize(8, 8)
-                self.active = active
-            def paintEvent(self, e):
+                self.color = QColor(Colors.ACCENT_GREEN)
+            def paintEvent(self, event):
                 p = QPainter(self)
                 p.setRenderHint(QPainter.Antialiasing)
+                p.setBrush(self.color)
                 p.setPen(Qt.NoPen)
-                color = QColor(Colors.SWITCH_ON) if self.active else QColor(Colors.TEXT_SECONDARY)
-                if not self.active: color.setAlpha(100)
-                p.setBrush(color)
-                p.drawEllipse(self.rect())
+                p.drawEllipse(0, 0, 8, 8)
                 
-        if active:
-            status_layout.addWidget(DotWidget(active))
+        self.dot = DotWidget(self)
+        self.status_lbl = QLabel("Connected")
+        self.status_lbl.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: 11px;")
+        
+        self.status_container.addWidget(self.dot)
+        self.status_container.addWidget(self.status_lbl)
+        
+        self.info_layout.addWidget(self.name_lbl)
+        self.info_layout.addLayout(self.status_container)
+        
+        self.layout.addLayout(self.info_layout)
+        self.layout.addStretch()
+        
+        self.gear_btn = GearButton(self)
+        self.gear_btn.clicked.connect(self._show_details_menu)
+        self.layout.addWidget(self.gear_btn)
+        
+        ThemeManager.theme_changed.connect(self.update_style)
+        
+    def update_style(self, _is_dark=False):
+        self.name_lbl.setStyleSheet(f"color: {Colors.TEXT_PRIMARY}; font-size: {Typography.SIZE_BODY}px; font-weight: {Typography.WEIGHT_MEDIUM};")
+        self.status_lbl.setStyleSheet(f"color: {Colors.TEXT_SECONDARY}; font-size: 11px;")
+        self.update()
+        
+    def set_status(self, is_connected: bool, status_text: str = ""):
+        self.dot.color = QColor(Colors.ACCENT_GREEN) if is_connected else QColor(Colors.TEXT_SECONDARY)
+        self.dot.update()
+        
+        from localization import t
+        if status_text:
+            self.status_lbl.setText(status_text)
+        else:
+            self.status_lbl.setText(t("network.connected", "Connected") if is_connected else t("network.not_connected", "Not Connected"))
             
-        status_text = QLabel("Connected" if active else "Not Connected")
-        s_col = Colors.SWITCH_ON if active else Colors.TEXT_SECONDARY
-        status_text.setStyleSheet(f"color: {s_col}; font-size: {Typography.SIZE_SECONDARY}px; font-weight: {Typography.WEIGHT_NORMAL};")
-        status_layout.addWidget(status_text)
-        
-        right_layout.addLayout(status_layout)
-        
-        gear = GearButton()
-        gear.clicked.connect(lambda checked=False: self.details_clicked.emit(self.interface, self.name))
-        right_layout.addWidget(gear)
-        
-        layout.addLayout(right_layout)
-        
-    def _show_context_menu(self, pos):
+    def _show_details_menu(self):
         menu = QMenu(self)
-        
-        # Styling macOS like menu
         menu.setStyleSheet(f"""
             QMenu {{
-                background-color: {Colors.WINDOW_BG};
+                background-color: {Colors.CARD_BG};
+                color: {Colors.TEXT_PRIMARY};
                 border: 1px solid {Colors.CARD_BORDER};
                 border-radius: 8px;
                 padding: 4px;
             }}
             QMenu::item {{
-                padding: 6px 24px 6px 12px;
+                padding: 6px 16px;
                 border-radius: 4px;
-                color: {Colors.TEXT_PRIMARY};
-                font-size: {Typography.SIZE_BODY}px;
             }}
             QMenu::item:selected {{
                 background-color: {Colors.ACCENT_BLUE};
                 color: white;
             }}
-            QMenu::item:disabled {{
-                color: {Colors.TEXT_SECONDARY};
-            }}
         """)
         
-        copy_ip = QAction("Copy IP Address", self)
-        if self.ipv4 == "Unavailable":
-            copy_ip.setEnabled(False)
-        else:
-            copy_ip.triggered.connect(lambda: QApplication.clipboard().setText(self.ipv4))
-        menu.addAction(copy_ip)
+        from localization import t
+        copy_action = menu.addAction(t("network.copy_ip", "Copy IPv4 Address"))
+        details_action = menu.addAction(t("network.details", "Details..."))
         
-        copy_mac = QAction("Copy MAC Address", self)
-        if self.mac == "Unavailable":
-            copy_mac.setEnabled(False)
-        else:
-            copy_mac.triggered.connect(lambda: QApplication.clipboard().setText(self.mac))
-        menu.addAction(copy_mac)
+        copy_action.triggered.connect(self._copy_ip)
+        details_action.triggered.connect(self._open_network_settings)
         
-        menu.addSeparator()
+        menu.exec(self.gear_btn.mapToGlobal(QPointF(0, self.gear_btn.height()).toPoint()))
         
-        open_details = QAction("Open Connection Details...", self)
-        open_details.triggered.connect(lambda: self.details_clicked.emit(self.interface, self.name))
-        menu.addAction(open_details)
-        
-        renew_dhcp = QAction("Renew DHCP Lease", self)
-        renew_dhcp.setEnabled(False)
-        menu.addAction(renew_dhcp)
-        
-        menu.exec_(self.mapToGlobal(pos))
-        
-    @Property(float)
-    def hover_alpha(self):
-        return self._hover_alpha
-        
-    @hover_alpha.setter
-    def hover_alpha(self, alpha):
-        self._hover_alpha = alpha
-        self.update()
-        
-    def enterEvent(self, event):
-        self.hover_anim.setDirection(QPropertyAnimation.Forward)
-        self.hover_anim.setStartValue(self._hover_alpha)
-        self.hover_anim.setEndValue(1.0)
-        self.hover_anim.start()
-        super().enterEvent(event)
-        
-    def leaveEvent(self, event):
-        self.hover_anim.setDirection(QPropertyAnimation.Backward)
-        self.hover_anim.setStartValue(self._hover_alpha)
-        self.hover_anim.setEndValue(0.0)
-        self.hover_anim.start()
-        super().leaveEvent(event)
-        
-    def paintEvent(self, event):
-        # Only hover shadow and bg, no scaling for macOS authenticity
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-        
-        # Soft shadow
-        is_dark = ThemeManager.is_dark
-        shadow_color = QColor(0, 0, 0, 40 if is_dark else 15)
-        if self._hover_alpha > 0:
-            shadow_color = QColor(0, 0, 0, int(40 + 15 * self._hover_alpha) if is_dark else int(15 + 10 * self._hover_alpha))
-            
-        path = QPainterPath()
-        path.addRoundedRect(self.rect().adjusted(2, 4, -2, -2), CARD_RADIUS, CARD_RADIUS)
-        p.fillPath(path, shadow_color)
-        
-        # Background
-        bg_color = QColor(Colors.CARD_BG)
-        bg_path = QPainterPath()
-        bg_path.addRoundedRect(self.rect().adjusted(0, 0, 0, -4), CARD_RADIUS, CARD_RADIUS)
-        p.fillPath(bg_path, bg_color)
-        
-        # Border
-        border_color = QColor(Colors.CARD_BORDER)
-        border_color.setAlpha(30 if is_dark else 50)
-        p.setPen(QPen(border_color, 1))
-        p.drawPath(bg_path)
-        
-        # Hover Overlay
-        if self._hover_alpha > 0:
-            hover_color = QColor(255, 255, 255, int(15 * self._hover_alpha)) if is_dark else QColor(0, 0, 0, int(8 * self._hover_alpha))
-            p.fillPath(bg_path, hover_color)
+    def _copy_ip(self):
+        import subprocess
+        try:
+            out = subprocess.check_output(["hostname", "-I"], text=True).strip()
+            ip = out.split()[0] if out else "127.0.0.1"
+            QApplication.clipboard().setText(ip)
+        except Exception:
+            pass
+
+    def _open_network_settings(self):
+        import subprocess, shutil
+        for cmd in ["gnome-control-center wifi", "gnome-control-center network", "cinnamon-settings network", "nm-connection-editor"]:
+            binary = cmd.split()[0]
+            if shutil.which(binary):
+                subprocess.Popen(cmd.split())
+                break

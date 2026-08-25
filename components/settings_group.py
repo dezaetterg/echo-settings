@@ -1,12 +1,11 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QRectF
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPen
 from theme.colors import Colors
 from theme.typography import Typography
 from theme.metrics import CARD_RADIUS
 from theme.manager import ThemeManager
 from theme.glass_shimmer import GlassShimmerHelper
-from PySide6.QtCore import QRectF
 
 class SettingsGroup(QWidget):
     """A white/dark rounded card to group settings rows. Identical in style to ModularCard."""
@@ -27,6 +26,8 @@ class SettingsGroup(QWidget):
             
     def add_row(self, row_widget):
         self.layout.addWidget(row_widget)
+        if hasattr(self, 'shimmer') and self.shimmer:
+            self.shimmer._install_recursive(row_widget)
 
     def enterEvent(self, event):
         self.shimmer.handle_enter(event)
@@ -64,5 +65,5 @@ class SettingsGroup(QWidget):
         p.setPen(QPen(border_color, 1))
         p.drawPath(bg_path)
 
-        # Dynamic specular edge sheen
+        # Dynamic specular edge sheen and ambient surface spotlight
         self.shimmer.paint_shimmer(p, QRectF(self.rect()), CARD_RADIUS, is_dark)
