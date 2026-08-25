@@ -168,25 +168,37 @@ class AppearanceBackend:
         except Exception:
             pass
 
-        # 3. GTK3 and GTK4 settings.ini
+        # 3. GTK3 and GTK4 settings.ini (GTK4 uses AdwStyleManager / gsettings)
         import configparser
         is_dark_num = "1" if scheme == "prefer-dark" else "0"
-        for ini_path in [
-            os.path.expanduser("~/.config/gtk-3.0/settings.ini"),
-            os.path.expanduser("~/.config/gtk-4.0/settings.ini")
-        ]:
-            try:
-                os.makedirs(os.path.dirname(ini_path), exist_ok=True)
+        
+        # GTK 3.0 uses gtk-application-prefer-dark-theme
+        gtk3_ini = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
+        try:
+            os.makedirs(os.path.dirname(gtk3_ini), exist_ok=True)
+            cp = configparser.ConfigParser()
+            if os.path.exists(gtk3_ini):
+                cp.read(gtk3_ini)
+            if not cp.has_section("Settings"):
+                cp.add_section("Settings")
+            cp.set("Settings", "gtk-application-prefer-dark-theme", is_dark_num)
+            with open(gtk3_ini, "w", encoding="utf-8") as f:
+                cp.write(f)
+        except Exception:
+            pass
+
+        # GTK 4.0 cleans deprecated gtk-application-prefer-dark-theme to prevent Libadwaita warnings
+        gtk4_ini = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
+        try:
+            if os.path.exists(gtk4_ini):
                 cp = configparser.ConfigParser()
-                if os.path.exists(ini_path):
-                    cp.read(ini_path)
-                if not cp.has_section("Settings"):
-                    cp.add_section("Settings")
-                cp.set("Settings", "gtk-application-prefer-dark-theme", is_dark_num)
-                with open(ini_path, "w", encoding="utf-8") as f:
-                    cp.write(f)
-            except Exception:
-                pass
+                cp.read(gtk4_ini)
+                if cp.has_section("Settings") and cp.has_option("Settings", "gtk-application-prefer-dark-theme"):
+                    cp.remove_option("Settings", "gtk-application-prefer-dark-theme")
+                    with open(gtk4_ini, "w", encoding="utf-8") as f:
+                        cp.write(f)
+        except Exception:
+            pass
 
         return True
 

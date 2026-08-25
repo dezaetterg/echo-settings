@@ -103,7 +103,7 @@ Priority: optional
 Architecture: ${ARCH}
 Installed-Size: ${INSTALLED_SIZE}
 Maintainer: Echo Contributors <https://github.com/dezaetterg/echo-settings>
-Depends: python3 (>= 3.10), python3-pyside6 | python3-pyqt6, python3-psutil, python3-dbus-next | python3-dbus, python3-jeepney
+Depends: python3 (>= 3.10), python3-pyside6 | python3-pyqt6, python3-psutil, python3-dbus-next | python3-dbus, python3-jeepney, python3-rapidfuzz
 Recommends: network-manager, wireplumber | pulseaudio, bluez
 Description: Modern System Control Center for Linux
  Echo Settings is an elegant, modular system control center built with Qt6/PySide6.

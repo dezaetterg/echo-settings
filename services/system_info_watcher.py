@@ -20,6 +20,7 @@ class SystemInfoWatcher(QObject):
         self._last_snapshot: dict = {}
         self._is_fetching = False
         self._is_stopped = False
+        self._lock = threading.Lock()
 
         # Запуск таймера
         self._timer = QTimer(self)
@@ -35,41 +36,57 @@ class SystemInfoWatcher(QObject):
     # ------------------------------------------------------------------
     def stop(self):
         """Остановить таймер и фоновый поток."""
-        self._is_stopped = True
-        if hasattr(self, '_timer'):
+        with self._lock:
+            self._is_stopped = True
+        if hasattr(self, '_timer') and self._timer.isActive():
             self._timer.stop()
 
     def get_snapshot(self) -> dict:
         """Вернуть последний известный снимок (синхронно)."""
-        if not self._last_snapshot:
-            self._last_snapshot = self._collect()
-        return dict(self._last_snapshot)
+        with self._lock:
+            if not self._last_snapshot:
+                self._last_snapshot = self._collect()
+            return dict(self._last_snapshot)
 
     # ------------------------------------------------------------------
     # Внутренние методы
     # ------------------------------------------------------------------
     def _poll(self):
         """Запустить фоновый поток для сбора данных."""
-        if self._is_fetching or self._is_stopped:
-            return
-        self._is_fetching = True
+        with self._lock:
+            if self._is_fetching or self._is_stopped:
+                return
+            self._is_fetching = True
 
         def _worker():
             try:
                 snapshot = self._collect()
             except Exception:
                 snapshot = {}
-            self._is_fetching = False
-            if not self._is_stopped and snapshot:
+            finally:
+                with self._lock:
+                    self._is_fetching = False
+                    stopped = self._is_stopped
+            if not stopped and snapshot:
                 self._on_fetched(snapshot)
 
         t = threading.Thread(target=_worker, daemon=True)
         t.start()
 
     def _on_fetched(self, snapshot: dict):
-        if snapshot != self._last_snapshot:
-            self._last_snapshot = snapshot
+        with self._lock:
+            if self._is_stopped:
+                return
+            if snapshot != self._last_snapshot:
+                self._last_snapshot = snapshot
+            else:
+                return
+        
+        # Эмитим сигнал с защитой от удаления C++ объекта
+        try:
             self.info_changed.emit(dict(snapshot))
+        except (RuntimeError, AttributeError):
+            pass
 
     # ------------------------------------------------------------------
     # Сбор данных (статический, вызывается из потока)
