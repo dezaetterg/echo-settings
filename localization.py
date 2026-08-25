@@ -2375,6 +2375,270 @@ TRANSLATIONS = {   'appearance.accent_color': {   'ar': 'لون التمييز',
                                      'tr': 'Kopyala',
                                      'uk': 'Копіювати',
                                      'zh_CN': '复制'},
+    'installer.search_desc_body': {   'ar': 'تفتح نافذة البحث فورا فوق اي نافذة نشطة باستخدام اختصار Super + Space. '
+                                            'مصممة لتوفير استجابة سريعة والتحكم في النظام بالكامل عبر لوحة المفاتيح.',
+                                      'de': 'Das Suchfenster offnet sich per Tastenkombination Super + Leertaste '
+                                            'direkt uber jedem aktiven Fenster. Fur minimale Latenz optimiert, steuern '
+                                            'Sie das System vollstandig uber die Tastatur.',
+                                      'en': 'The search overlay opens instantly over any active window using the Super '
+                                            '+ Space shortcut. Optimized for minimal latency, it allows you to control '
+                                            'your system entirely from the keyboard without using a mouse.',
+                                      'es': 'La barra de busqueda se abre al instante sobre cualquier ventana activa '
+                                            'con el atajo Super + Espacio. Optimizada para una respuesta inmediata, le '
+                                            'permite controlar el sistema desde el teclado.',
+                                      'fr': "La barre de recherche s'ouvre instantanement sur n'importe quelle fenetre "
+                                            'avec le raccourci Super + Espace. Optimisee pour une reponse fluide, elle '
+                                            'permet de controler le systeme au clavier.',
+                                      'it': "La barra di ricerca si apre all'istante sopra qualsiasi finestra con la "
+                                            'scorciatoia Super + Spazio. Ottimizzata per la massima reattivita, '
+                                            'permette di controllare il sistema da tastiera.',
+                                      'ja': 'Super + Space キーでどのアクティブウィンドウの上にも即座に表示。遅延のない軽快な動作で、キーボードだけでシステム全体を操作できます。',
+                                      'kk': 'Super + Space пернелер тіркесімі арқылы кез келген белсенді терезе '
+                                            'үстінде лезде ашылады. Жүйені тінтуірсіз, тек пернетақта арқылы басқаруға '
+                                            'арналған.',
+                                      'pt_BR': 'A barra de busca abre instantaneamente sobre qualquer janela ativa '
+                                               'usando o atalho Super + Espaco. Otimizada para resposta rapida, '
+                                               'permite controlar o sistema pelo teclado.',
+                                      'ru': 'Строка поиска открывается мгновенно поверх любого активного окна по '
+                                            'комбинации клавиш Super + Space. Она оптимизирована для быстрого отклика '
+                                            'и позволяет управлять системой полностью с клавиатуры без необходимости '
+                                            'использовать мышь.',
+                                      'tr': 'Super + Bosluk kisayoluyla tum pencerelerin uzerinde aninda acilir. '
+                                            'Minimum gecikme icin optimize edilmistir, sistemi klavyeden kontrol '
+                                            'etmenizi saglar.',
+                                      'uk': 'Рядок пошуку відкривається миттєво поверх будь-якого активного вікна за '
+                                            'комбінацією Super + Space. Дозволяє керувати системою виключно з '
+                                            'клавіатури.',
+                                      'zh_CN': '使用 Super + 空格 快捷键在任何活动窗口上方即时呼出。经过极致性能优化，支持完全通过键盘掌控整个系统。'},
+    'installer.search_desc_f1_text': {   'ar': 'تشغيل فوري للتطبيقات مع ترتيب ذكي حسب معدل الاستخدام اليومي.',
+                                         'de': 'Sofortiger Anwendungsstart mit intelligenter Sortierung nach '
+                                               'Haufigkeit.',
+                                         'en': 'Instant application lookup with smart ranking based on your usage '
+                                               'frequency.',
+                                         'es': 'Busqueda instantanea de aplicaciones con clasificacion inteligente por '
+                                               'uso.',
+                                         'fr': 'Recherche instantanee d applications avec classement selon la '
+                                               'frequence d usage.',
+                                         'it': 'Avvio rapido delle applicazioni con ordinamento basato sulla frequenza '
+                                               'd uso.',
+                                         'ja': '使用頻度順の並び替えでアプリケーションをすばやく起動。',
+                                         'kk': 'Қолдану жиілігіне қарай сұрыпталған бағдарламаларды лезде іздеу.',
+                                         'pt_BR': 'Busca instantanea de aplicativos com classificacao por uso.',
+                                         'ru': 'Мгновенный поиск установленных программ с интеллектуальной сортировкой '
+                                               'по частоте вызовов.',
+                                         'tr': 'Kullanim sikligina gore akilli siralama ile aninda uygulama baslatma.',
+                                         'uk': 'Миттєвий пошук програм із розумним сортуванням за частотою '
+                                               'використання.',
+                                         'zh_CN': '根据使用频率智能排序并快速启动应用程序。'},
+    'installer.search_desc_f1_title': {   'ar': 'مشغل التطبيقات',
+                                          'de': 'App-Starter',
+                                          'en': 'App Launcher',
+                                          'es': 'Lanzador de apps',
+                                          'fr': "Lanceur d'apps",
+                                          'it': 'Avvio app',
+                                          'ja': 'アプリ起動',
+                                          'kk': 'Бағдарламаларды іске қосу',
+                                          'pt_BR': 'Inicializador',
+                                          'ru': 'Быстрый запуск',
+                                          'tr': 'Uygulama Baslatici',
+                                          'uk': 'Швидкий запуск',
+                                          'zh_CN': '应用启动'},
+    'installer.search_desc_f2_text': {   'ar': 'فهرسة عميقة للمستندات والارشيفات في المجلد الرئيسي مع دعم الفلاتر.',
+                                         'de': 'Tiefe Indexierung von Dokumenten und Ordnern im Benutzerverzeichnis.',
+                                         'en': 'Deep indexing of documents, archives, and folders in your home '
+                                               'directory.',
+                                         'es': 'Indexacion profunda de documentos, carpetas y archivos en la carpeta '
+                                               'personal.',
+                                         'fr': 'Indexation approfondie des documents et dossiers dans votre repertoire '
+                                               'personnel.',
+                                         'it': 'Indicizzazione approfondita di documenti e cartelle nella directory '
+                                               'personale.',
+                                         'ja': 'ホームディレクトリ内のドキュメントやフォルダを高速インデックス。',
+                                         'kk': 'Үй каталогындағы құжаттар мен папкаларды терең индекстеу.',
+                                         'pt_BR': 'Indexacao profunda de documentos e pastas na pasta pessoal.',
+                                         'ru': 'Глубокая индексация документов, архивов и каталогов в домашней '
+                                               'директории с поддержкой фильтров.',
+                                         'tr': 'Kullanici dizinindeki belge ve klasorlerin derinlemesine '
+                                               'indekslenmesi.',
+                                         'uk': 'Глибока індексація документів та папок у домашній директорії.',
+                                         'zh_CN': '深度检索用户主目录中的文档、压缩包与文件夹，支持格式过滤。'},
+    'installer.search_desc_f2_title': {   'ar': 'البحث في الملفات والمجلدات',
+                                          'de': 'Dateien & Ordner',
+                                          'en': 'Files & Documents',
+                                          'es': 'Archivos y carpetas',
+                                          'fr': 'Fichiers et dossiers',
+                                          'it': 'File e cartelle',
+                                          'ja': 'ファイルとドキュメント',
+                                          'kk': 'Файлдар мен папкалар',
+                                          'pt_BR': 'Arquivos e pastas',
+                                          'ru': 'Поиск файлов и папок',
+                                          'tr': 'Dosyalar ve Klasorler',
+                                          'uk': 'Пошук файлів та папок',
+                                          'zh_CN': '文件与文档检索'},
+    'installer.search_desc_f3_text': {   'ar': 'حساب فوري للمعادلات الرياضية وتحويل العملات والوحدات الفيزيائية.',
+                                         'de': 'Echtzeit-Berechnung mathematischer Ausdrucke, Prozentrechnung und '
+                                               'Einheitenumrechnung.',
+                                         'en': 'Real-time mathematical evaluation, unit conversions, and currency '
+                                               'calculations.',
+                                         'es': 'Calculos matematicos en tiempo real, conversion de unidades y tipos de '
+                                               'cambio.',
+                                         'fr': 'Calculs mathematiques en temps reel, conversion d unites et taux de '
+                                               'change.',
+                                         'it': 'Calcoli matematici in tempo reale, conversione di unita e valute.',
+                                         'ja': '数式のリアルタイム計算、単位換算、通貨レートの即時評価。',
+                                         'kk': 'Математикалық есептеулерді нақты уақытта шешу және өлшем бірліктерін '
+                                               'түрлендіру.',
+                                         'pt_BR': 'Calculos matematicos em tempo real, conversao de unidades e moedas.',
+                                         'ru': 'Вычисление математических выражений в реальном времени, перевод '
+                                               'величин и расчет процентов.',
+                                         'tr': 'Gercek zamanli matematiksel hesaplamalar ve birim donusturme.',
+                                         'uk': 'Обчислення виразів у реальному часі, розрахунок відсотків та '
+                                               'конвертація одиниць.',
+                                         'zh_CN': '即时数学表达式计算、百分比核算以及常用物理单位与货币转换。'},
+    'installer.search_desc_f3_title': {   'ar': 'الحاسبة ومحول الوحدات',
+                                          'de': 'Rechner & Konverter',
+                                          'en': 'Calculator & Converter',
+                                          'es': 'Calculadora y conversor',
+                                          'fr': 'Calculatrice et convertisseur',
+                                          'it': 'Calcolatrice e convertitore',
+                                          'ja': '計算機と単位換算',
+                                          'kk': 'Калькулятор және түрлендіргіш',
+                                          'pt_BR': 'Calculadora e conversor',
+                                          'ru': 'Калькулятор и конвертер',
+                                          'tr': 'Hesap Makinesi ve Donusturucu',
+                                          'uk': 'Калькулятор і конвертер',
+                                          'zh_CN': '计算器与单位转换'},
+    'installer.search_desc_f4_text': {   'ar': 'سجل النصوص المنسوخة، قفل الشاشة، اعادة التشغيل وايقاف التشغيل مباشرة '
+                                               'من البحث.',
+                                         'de': 'Zwischenablageverlauf, Bildschirmsperre, Neustart und Herunterfahren '
+                                               'direkt aus der Suche.',
+                                         'en': 'Access clipboard history, lock screen, trigger sleep, or power off '
+                                               'directly from search.',
+                                         'es': 'Historial del portapapeles, bloqueo de pantalla, reinicio y apagado '
+                                               'desde la busqueda.',
+                                         'fr': "Historique du presse-papiers, verrouillage de l'ecran, veille et arret "
+                                               'depuis la recherche.',
+                                         'it': 'Cronologia appunti, blocco schermo, sospensione e spegnimento '
+                                               'direttamente dalla ricerca.',
+                                         'ja': 'コピー履歴へのアクセス、画面ロック、スリープ、シャットダウンを直接実行。',
+                                         'kk': 'Көшірілген мәтін тарихы, экранды бұғаттау, ұйқы режимі және жүйені '
+                                               'сөндіру.',
+                                         'pt_BR': 'Historico da area de transferencia, bloqueio de tela e desligamento '
+                                                  'direto da busca.',
+                                         'ru': 'История скопированного текста, блокировка экрана, переход в спящий '
+                                               'режим и выключение системы.',
+                                         'tr': 'Pano gecmisi, ekran kilitleme, uyku modu ve sistemi kapatma islemleri.',
+                                         'uk': 'Історія скопійованого тексту, блокування екрана, сон та вимкнення '
+                                               'системи.',
+                                         'zh_CN': '剪贴板历史记录速览，并支持直接锁屏、休眠、重启或关机。'},
+    'installer.search_desc_f4_title': {   'ar': 'الحافظة واوامر النظام',
+                                          'de': 'Zwischenablage & Aktionen',
+                                          'en': 'Clipboard & Actions',
+                                          'es': 'Portapapeles y acciones',
+                                          'fr': 'Presse-papiers et actions',
+                                          'it': 'Appunti e azioni di sistema',
+                                          'ja': 'クリップボードとシステム操作',
+                                          'kk': 'Алмасу буфері және әрекеттер',
+                                          'pt_BR': 'Area de transferencia e acoes',
+                                          'ru': 'Буфер и системные команды',
+                                          'tr': 'Pano ve Sistem Komutlari',
+                                          'uk': 'Буфер та системні команди',
+                                          'zh_CN': '剪贴板与系统快捷指令'},
+    'installer.search_desc_f5_text': {   'ar': 'معالجة محلية بالكامل للبيانات دون اتصالات خارجية وبدون استهلاك للذاكرة '
+                                               'في وضع الاستعداد.',
+                                         'de': 'Vollstandig lokale Verarbeitung ohne Netzwerkzugriffe und ohne '
+                                               'Hintergrundlast.',
+                                         'en': 'Fully local processing without network requests and zero background '
+                                               'idle overhead.',
+                                         'es': 'Procesamiento completamente local sin solicitudes de red y sin carga '
+                                               'en segundo plano.',
+                                         'fr': 'Traitement entierement local sans requetes reseau et sans impact en '
+                                               'arriere-plan.',
+                                         'it': 'Elaborazione completamente locale senza connessioni di rete e zero '
+                                               'consumo in background.',
+                                         'ja': 'ネットワーク通信を行わない完全ローカル処理。待機時のメモリ消費も最小限。',
+                                         'kk': 'Желіге деректер жібермей толық жергілікті өңдеу және фонда процессорға '
+                                               'жүктеме түсірмеу.',
+                                         'pt_BR': 'Processamento totalmente local sem requisicoes de rede e sem '
+                                                  'consumo em segundo plano.',
+                                         'ru': 'Полностью локальная обработка данных без отправки в сеть и нулевая '
+                                               'нагрузка на процессор в фоне.',
+                                         'tr': 'Ag baglantisi olmadan tamamen yerel isleme ve arka planda sifir yuk.',
+                                         'uk': 'Повністю локальна обробка даних без надсилання в мережу та без '
+                                               'навантаження на процесор.',
+                                         'zh_CN': '所有索引与计算完全在本地执行，不联网传输数据，后台待机零资源消耗。'},
+    'installer.search_desc_f5_title': {   'ar': 'الخصوصية والسرعة',
+                                          'de': 'Datenschutz & Leistung',
+                                          'en': 'Privacy & Speed',
+                                          'es': 'Privacidad y rendimiento',
+                                          'fr': 'Confidentialite et rapidite',
+                                          'it': 'Privacy e velocita',
+                                          'ja': 'プライバシーと軽快さ',
+                                          'kk': 'Құпиялылық және жылдамдық',
+                                          'pt_BR': 'Privacidade e velocidade',
+                                          'ru': 'Приватность и скорость',
+                                          'tr': 'Gizlilik ve Performans',
+                                          'uk': 'Приватність та швидкість',
+                                          'zh_CN': '隐私保护与极速体验'},
+    'installer.search_desc_sub': {   'ar': 'تشغيل سريع للتطبيقات وبحث في الملفات واجراءات النظام في نافذة موحدة.',
+                                     'de': 'Schneller Anwendungsstart, Dateisuche und Systemaktionen in einem '
+                                           'zentralen Suchfenster.',
+                                     'en': 'Fast application launching, deep file search, and system actions in a '
+                                           'single unified overlay.',
+                                     'es': 'Lanzamiento rapido de aplicaciones, busqueda de archivos y acciones del '
+                                           'sistema en una ventana unificada.',
+                                     'fr': "Lancement rapide d'applications, recherche de fichiers et actions systeme "
+                                           'dans une fenetre unifiee.',
+                                     'it': "Avvio rapido di app, ricerca file e azioni di sistema in un'unica finestra "
+                                           'unificata.',
+                                     'ja': 'アプリの高速起動、ファイルの検索、システム操作を一つの画面で実行。',
+                                     'kk': 'Бағдарламаларды жылдам іске қосу, файлдарды іздеу және жүйелік әрекеттер '
+                                           'бір терезеде.',
+                                     'pt_BR': 'Inicializacao rapida de apps, busca de arquivos e acoes do sistema em '
+                                              'uma janela unificada.',
+                                     'ru': 'Быстрый запуск программ, глубокий поиск файлов и системные действия в '
+                                           'одном окне.',
+                                     'tr': 'Hizli uygulama baslatma, dosya arama ve sistem eylemleri tek bir '
+                                           'pencerede.',
+                                     'uk': 'Швидкий запуск програм, пошук файлів та системні дії в одному вікні.',
+                                     'zh_CN': '在统一的搜索窗口中实现极速启动、深度文件检索与系统快捷控制。'},
+    'installer.search_desc_tip': {   'ar': 'تلميح: استخدم السهمين لاعلى ولاسفل للاختيار، واضغط Enter للتشغيل، وEscape '
+                                           'للاغلاق.',
+                                     'de': 'Tipp: Pfeiltasten Auf/Ab zum Auswahlen, Eingabetaste zum Offnen, Escape '
+                                           'zum Schliessen.',
+                                     'en': 'Navigation: use Up/Down arrows to select, Enter to launch, and Escape to '
+                                           'dismiss.',
+                                     'es': 'Navegacion: use flechas Arriba/Abajo para seleccionar, Enter para abrir y '
+                                           'Escape para cerrar.',
+                                     'fr': 'Navigation: fleches Haut/Bas pour selectionner, Entree pour ouvrir, Echap '
+                                           'pour fermer.',
+                                     'it': 'Navigazione: frecce Su/Giu per selezionare, Invio per aprire ed Esc per '
+                                           'chiudere.',
+                                     'ja': '操作方法: 上下矢印キーで選択、Enter で実行、Escape で閉じます。',
+                                     'kk': 'Баскару: тандау ушин Жогары/Томен багыттауыштары, иске косу ушин Enter, '
+                                           'жабу ушин Escape.',
+                                     'pt_BR': 'Navegacao: use as setas Cima/Baixo para selecionar, Enter para abrir e '
+                                              'Esc para fechar.',
+                                     'ru': 'Подсказка: навигация стрелками Вверх/Вниз, запуск по Enter, закрытие по '
+                                           'клавише Escape.',
+                                     'tr': 'Ipucu: gezinmek icin Yukari/Asagi oklari, calistirmak icin Enter, kapatmak '
+                                           'icin Escape.',
+                                     'uk': 'Підказка: навігація стрілками Вгору/Вниз, запуск по Enter, закриття по '
+                                           'клавіші Escape.',
+                                     'zh_CN': '操作提示: 使用上下方向键选择条目，Enter 键确认启动，Escape 键快速关闭。'},
+    'installer.search_desc_title': {   'ar': 'ميزات Echo Search',
+                                       'de': 'Funktionen von Echo Search',
+                                       'en': 'Echo Search Capabilities',
+                                       'es': 'Capacidades de Echo Search',
+                                       'fr': "Fonctionnalites d'Echo Search",
+                                       'it': 'Funzionalita di Echo Search',
+                                       'ja': 'Echo Search の機能',
+                                       'kk': 'Echo Search мүмкіндіктері',
+                                       'pt_BR': 'Recursos do Echo Search',
+                                       'ru': 'Возможности Echo Search',
+                                       'tr': 'Echo Search Ozellikleri',
+                                       'uk': 'Можливості Echo Search',
+                                       'zh_CN': 'Echo Search 功能概览'},
     'installer.search_feature_calc': {   'ar': 'حاسبة مدمجة ومحول عملات',
                                          'de': 'Integrierter Rechner und Währungsumrechner',
                                          'en': 'Inline calculator & currency converter',

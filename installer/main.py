@@ -1027,17 +1027,17 @@ class EchoSearchCompanionView(QWidget):
 
     def _init_ui(self):
         root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(36, 10, 36, 18)
-        root_layout.setSpacing(12)
+        root_layout.setContentsMargins(36, 18, 36, 22)
+        root_layout.setSpacing(10)
 
         t_col = "#FFFFFF" if self.is_dark else "#1D1D1F"
         s_col = "rgba(255, 255, 255, 0.70)" if self.is_dark else "rgba(0, 0, 0, 0.60)"
 
-        # ── Two-Column macOS Setup Assistant Composition ──
         body_layout = QHBoxLayout()
+        body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(24)
 
-        # ── LEFT COLUMN: Hero Panel (Search Icon, Title, Subtitle, Feature Highlights, Back Button) ──
+        # ── LEFT COLUMN: Hero Icon + Title + Key Highlights + Back Button ──
         left_widget = QWidget()
         left_widget.setFixedWidth(220)
         left_layout = QVBoxLayout(left_widget)
@@ -1081,9 +1081,9 @@ class EchoSearchCompanionView(QWidget):
         tip_layout.setContentsMargins(10, 8, 10, 8)
         tip_layout.setSpacing(5)
 
-        self.tip_item1 = QLabel("⚡ " + t("installer.search_feature_shortcut"))
-        self.tip_item2 = QLabel("📂 " + t("installer.search_feature_files"))
-        self.tip_item3 = QLabel("🧮 " + t("installer.search_feature_calc"))
+        self.tip_item1 = QLabel("• " + t("installer.search_feature_shortcut"))
+        self.tip_item2 = QLabel("• " + t("installer.search_feature_files"))
+        self.tip_item3 = QLabel("• " + t("installer.search_feature_calc"))
 
         for lbl in (self.tip_item1, self.tip_item2, self.tip_item3):
             lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10px; line-height: 1.3; border: none; background: transparent;")
@@ -1100,131 +1100,94 @@ class EchoSearchCompanionView(QWidget):
 
         body_layout.addWidget(left_widget, 0)
 
-        # ── RIGHT COLUMN: Live Spotlight Mockup + Copy Install Cmd + Option Card + Controls ──
+        # ── RIGHT COLUMN: Expanded Human Description Card + Copy Install Cmd + Option Card + Controls ──
         right_widget = QWidget()
         right_widget.setStyleSheet("background: transparent;")
         right_layout = QVBoxLayout(right_widget)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(8)
 
-        # 1. Floating Liquid Glass Spotlight Window Mockup
-        self.preview_card = MacGlassCard(is_dark=self.is_dark, corner_radius=12)
-        prev_layout = QVBoxLayout(self.preview_card)
-        prev_layout.setContentsMargins(10, 8, 10, 8)
-        prev_layout.setSpacing(6)
+        # 1. Echo Search Human Overview Card (Expanded to comfortably fill space)
+        self.desc_card = MacGlassCard(is_dark=self.is_dark, corner_radius=12)
+        desc_layout = QVBoxLayout(self.desc_card)
+        desc_layout.setContentsMargins(14, 12, 14, 12)
+        desc_layout.setSpacing(6)
 
-        # 1.1 Top Spotlight Search Bar
-        self.spotlight_bar = QFrame()
-        sp_bar_bg = "rgba(255, 255, 255, 0.14)" if self.is_dark else "rgba(0, 0, 0, 0.06)"
-        sp_bar_border = "rgba(255, 255, 255, 0.24)" if self.is_dark else "rgba(0, 0, 0, 0.12)"
-        self.spotlight_bar.setStyleSheet(f"""
-            QFrame {{
-                background-color: {sp_bar_bg};
-                border: 1px solid {sp_bar_border};
-                border-radius: 8px;
-            }}
-        """)
-        sp_bar_layout = QHBoxLayout(self.spotlight_bar)
-        sp_bar_layout.setContentsMargins(8, 4, 8, 4)
-        sp_bar_layout.setSpacing(6)
+        # 1.1 Header with Title and Keyboard Shortcut Pill
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
+        header_row.setSpacing(8)
 
-        sp_icon = QLabel("🔍")
-        sp_icon.setStyleSheet("font-size: 12px; border: none; background: transparent;")
-        sp_bar_layout.addWidget(sp_icon)
+        self.desc_title = QLabel(t("installer.search_desc_title"))
+        self.desc_title.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Display', 'Inter', sans-serif; font-size: 13.5px; font-weight: 700; border: none; background: transparent;")
+        header_row.addWidget(self.desc_title, 1)
 
-        self.sp_query = QLabel("Echo Settings")
-        self.sp_query.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Display', 'Inter', sans-serif; font-size: 12px; font-weight: 700; border: none; background: transparent;")
-        sp_bar_layout.addWidget(self.sp_query, 1)
-
-        self.sp_badge = QLabel("⌘ Space")
-        badge_bg = "rgba(255, 255, 255, 0.18)" if self.is_dark else "rgba(0, 0, 0, 0.10)"
-        self.sp_badge.setStyleSheet(f"""
-            color: {t_col};
+        self.desc_badge = QLabel("Super + Space")
+        self.desc_badge.setFixedHeight(22)
+        self.desc_badge.setAlignment(Qt.AlignCenter)
+        badge_bg = "rgba(0, 122, 255, 0.15)" if self.is_dark else "rgba(0, 122, 255, 0.10)"
+        self.desc_badge.setStyleSheet(f"""
+            color: {MacPalette.ACCENT_BLUE};
             background-color: {badge_bg};
-            border-radius: 4px;
-            padding: 1px 6px;
-            font-family: monospace;
+            border: 1px solid rgba(0, 122, 255, 0.28);
+            border-radius: 5px;
+            padding: 2px 8px;
+            font-family: 'SF Mono', 'JetBrains Mono', monospace;
             font-size: 9.5px;
             font-weight: 600;
             border: none;
         """)
-        sp_bar_layout.addWidget(self.sp_badge)
-        prev_layout.addWidget(self.spotlight_bar)
+        header_row.addWidget(self.desc_badge, 0, Qt.AlignVCenter)
+        desc_layout.addLayout(header_row)
 
-        # 1.2 Spotlight Results Pane
-        self.results_frame = QFrame()
-        self.results_frame.setStyleSheet("background: transparent; border: none;")
-        res_layout = QVBoxLayout(self.results_frame)
-        res_layout.setContentsMargins(2, 0, 2, 0)
-        res_layout.setSpacing(3)
+        # 1.2 Subtitle / Summary Line
+        self.desc_sub = QLabel(t("installer.search_desc_sub"))
+        self.desc_sub.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10.5px; font-weight: 600; line-height: 1.3; border: none; background: transparent;")
+        self.desc_sub.setWordWrap(True)
+        desc_layout.addWidget(self.desc_sub)
 
-        # Active / Selected Spotlight Item: Echo Settings
-        self.active_item = QFrame()
-        self.active_item.setStyleSheet("""
-            QFrame {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(0, 122, 255, 0.85), stop:1 rgba(10, 132, 255, 0.90));
-                border: 1px solid rgba(255, 255, 255, 0.35);
-                border-radius: 6px;
-            }
-        """)
-        ai_layout = QHBoxLayout(self.active_item)
-        ai_layout.setContentsMargins(6, 3, 6, 3)
-        ai_layout.setSpacing(6)
+        # 1.3 Main Description Paragraph
+        self.desc_body = QLabel(t("installer.search_desc_body"))
+        self.desc_body.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10px; line-height: 1.35; border: none; background: transparent;")
+        self.desc_body.setWordWrap(True)
+        desc_layout.addWidget(self.desc_body)
 
-        ai_icon = QLabel("⚙️")
-        ai_icon.setStyleSheet("font-size: 13px; border: none; background: transparent;")
-        ai_layout.addWidget(ai_icon)
+        # 1.4 Detailed 5-Item Features Breakdown (Full Word Wrap)
+        features_layout = QVBoxLayout()
+        features_layout.setContentsMargins(0, 2, 0, 0)
+        features_layout.setSpacing(4)
 
-        ai_text_layout = QVBoxLayout()
-        ai_text_layout.setSpacing(0)
-        self.ai_title = QLabel("Echo Settings")
-        self.ai_title.setStyleSheet("color: #FFFFFF; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 11px; font-weight: 700; border: none; background: transparent;")
-        ai_text_layout.addWidget(self.ai_title)
-        self.ai_sub = QLabel(t("installer.spotlight_app_desc"))
-        self.ai_sub.setStyleSheet("color: rgba(255, 255, 255, 0.85); font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; border: none; background: transparent;")
-        ai_text_layout.addWidget(self.ai_sub)
-        ai_layout.addLayout(ai_text_layout, 1)
+        self.f1_lbl = QLabel()
+        self.f2_lbl = QLabel()
+        self.f3_lbl = QLabel()
+        self.f4_lbl = QLabel()
+        self.f5_lbl = QLabel()
 
-        ai_badge = QLabel("Enter ↵")
-        ai_badge.setStyleSheet("color: #FFFFFF; background: rgba(0, 0, 0, 0.25); border-radius: 3px; padding: 1px 5px; font-size: 8.5px; font-weight: 600; font-family: monospace; border: none;")
-        ai_layout.addWidget(ai_badge)
-        res_layout.addWidget(self.active_item)
+        for lbl in (self.f1_lbl, self.f2_lbl, self.f3_lbl, self.f4_lbl, self.f5_lbl):
+            lbl.setWordWrap(True)
+            features_layout.addWidget(lbl)
 
-        # Calculator Item
-        item2_bg = "rgba(255, 255, 255, 0.06)" if self.is_dark else "rgba(0, 0, 0, 0.03)"
-        self.calc_item = QFrame()
-        self.calc_item.setStyleSheet(f"QFrame {{ background: {item2_bg}; border-radius: 5px; border: none; }}")
-        calc_layout = QHBoxLayout(self.calc_item)
-        calc_layout.setContentsMargins(6, 2, 6, 2)
-        calc_layout.setSpacing(6)
+        desc_layout.addLayout(features_layout)
 
-        calc_icon = QLabel("🧮")
-        calc_icon.setStyleSheet("font-size: 12px; border: none; background: transparent;")
-        calc_layout.addWidget(calc_icon)
+        # 1.5 Navigation Tip Footer inside Card
+        self.desc_tip = QLabel(t("installer.search_desc_tip"))
+        self.desc_tip.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; font-style: italic; border: none; background: transparent; padding-top: 2px;")
+        self.desc_tip.setWordWrap(True)
+        desc_layout.addWidget(self.desc_tip)
 
-        calc_text_layout = QVBoxLayout()
-        calc_text_layout.setSpacing(0)
-        self.calc_title = QLabel("256 × 4 = 1024")
-        self.calc_title.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10.5px; font-weight: 700; border: none; background: transparent;")
-        calc_text_layout.addWidget(self.calc_title)
-        self.calc_sub = QLabel(t("installer.spotlight_calc_desc"))
-        self.calc_sub.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 8.5px; border: none; background: transparent;")
-        calc_text_layout.addWidget(self.calc_sub)
-        calc_layout.addLayout(calc_text_layout, 1)
-        res_layout.addWidget(self.calc_item)
+        self._update_feature_text()
 
-        prev_layout.addWidget(self.results_frame)
-        right_layout.addWidget(self.preview_card, 0)
+        right_layout.addWidget(self.desc_card, 0)
 
         # 2. Terminal Install Command Card with Copy Button
         self.cmd_card = MacGlassCard(is_dark=self.is_dark, corner_radius=11)
-        self.cmd_card.setFixedHeight(52)
+        self.cmd_card.setFixedHeight(50)
         cmd_card_layout = QVBoxLayout(self.cmd_card)
-        cmd_card_layout.setContentsMargins(10, 4, 10, 4)
+        cmd_card_layout.setContentsMargins(10, 3, 10, 3)
         cmd_card_layout.setSpacing(2)
 
         self.cmd_lbl = QLabel(t("installer.search_cmd_label"))
-        self.cmd_lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9.5px; font-weight: 600; border: none; background: transparent;")
+        self.cmd_lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; font-weight: 600; border: none; background: transparent;")
         cmd_card_layout.addWidget(self.cmd_lbl)
 
         cmd_box = QHBoxLayout()
@@ -1260,9 +1223,9 @@ class EchoSearchCompanionView(QWidget):
 
         # 3. Checkbox Option Card
         self.opt_card = MacGlassCard(is_dark=self.is_dark, corner_radius=11)
-        self.opt_card.setFixedHeight(52)
+        self.opt_card.setFixedHeight(50)
         opt_layout = QVBoxLayout(self.opt_card)
-        opt_layout.setContentsMargins(10, 4, 10, 4)
+        opt_layout.setContentsMargins(10, 3, 10, 3)
         opt_layout.setSpacing(1)
 
         chk_text = t("installer.search_opt_enable") if self.is_welcome_mode else t("installer.search_opt_install")
@@ -1297,6 +1260,17 @@ class EchoSearchCompanionView(QWidget):
 
         body_layout.addWidget(right_widget, 1)
         root_layout.addLayout(body_layout)
+
+    def _update_feature_text(self):
+        t_col = "#FFFFFF" if self.is_dark else "#1D1D1F"
+        s_col = "rgba(255, 255, 255, 0.70)" if self.is_dark else "rgba(0, 0, 0, 0.60)"
+        self.f1_lbl.setText(f"<span style='color:{t_col}; font-weight:700;'>• {t('installer.search_desc_f1_title')}:</span> <span style='color:{s_col};'>{t('installer.search_desc_f1_text')}</span>")
+        self.f2_lbl.setText(f"<span style='color:{t_col}; font-weight:700;'>• {t('installer.search_desc_f2_title')}:</span> <span style='color:{s_col};'>{t('installer.search_desc_f2_text')}</span>")
+        self.f3_lbl.setText(f"<span style='color:{t_col}; font-weight:700;'>• {t('installer.search_desc_f3_title')}:</span> <span style='color:{s_col};'>{t('installer.search_desc_f3_text')}</span>")
+        self.f4_lbl.setText(f"<span style='color:{t_col}; font-weight:700;'>• {t('installer.search_desc_f4_title')}:</span> <span style='color:{s_col};'>{t('installer.search_desc_f4_text')}</span>")
+        self.f5_lbl.setText(f"<span style='color:{t_col}; font-weight:700;'>• {t('installer.search_desc_f5_title')}:</span> <span style='color:{s_col};'>{t('installer.search_desc_f5_text')}</span>")
+        for lbl in (self.f1_lbl, self.f2_lbl, self.f3_lbl, self.f4_lbl, self.f5_lbl):
+            lbl.setStyleSheet("font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9.5px; line-height: 1.35; border: none; background: transparent;")
 
     def _update_copy_btn_style(self):
         bg = "rgba(0, 122, 255, 0.16)" if self.is_dark else "rgba(0, 122, 255, 0.10)"
@@ -1371,7 +1345,7 @@ class EchoSearchCompanionView(QWidget):
         self.is_dark = is_dark
         self.search_icon.set_dark(is_dark)
         self.tip_card.set_dark(is_dark)
-        self.preview_card.set_dark(is_dark)
+        self.desc_card.set_dark(is_dark)
         self.cmd_card.set_dark(is_dark)
         self.opt_card.set_dark(is_dark)
         self.chk_install_search.set_dark(is_dark)
@@ -1384,8 +1358,16 @@ class EchoSearchCompanionView(QWidget):
         self.sub_lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 11.5px; line-height: 1.35; background: transparent; border: none;")
         for lbl in (self.tip_item1, self.tip_item2, self.tip_item3):
             lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10px; line-height: 1.3; border: none; background: transparent;")
-        self.sp_query.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Display', 'Inter', sans-serif; font-size: 12px; font-weight: 700; background: transparent; border: none;")
-        self.cmd_lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9.5px; font-weight: 600; border: none; background: transparent;")
+        
+        self.desc_title.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Display', 'Inter', sans-serif; font-size: 13.5px; font-weight: 700; border: none; background: transparent;")
+        self.desc_sub.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10.5px; font-weight: 600; line-height: 1.3; border: none; background: transparent;")
+        self.desc_body.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10px; line-height: 1.35; border: none; background: transparent;")
+        badge_bg = "rgba(0, 122, 255, 0.15)" if self.is_dark else "rgba(0, 122, 255, 0.10)"
+        self.desc_badge.setStyleSheet(f"color: {MacPalette.ACCENT_BLUE}; background-color: {badge_bg}; border: 1px solid rgba(0, 122, 255, 0.28); border-radius: 5px; padding: 2px 8px; font-family: 'SF Mono', 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 600; border: none;")
+        self._update_feature_text()
+        self.desc_tip.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; font-style: italic; border: none; background: transparent; padding-top: 2px;")
+
+        self.cmd_lbl.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; font-weight: 600; border: none; background: transparent;")
         cmd_bg = "rgba(0, 0, 0, 0.28)" if self.is_dark else "rgba(0, 0, 0, 0.05)"
         cmd_border = "rgba(255, 255, 255, 0.12)" if self.is_dark else "rgba(0, 0, 0, 0.08)"
         self.cmd_code.setStyleSheet(f"""
@@ -1401,40 +1383,17 @@ class EchoSearchCompanionView(QWidget):
         """)
         self.opt_desc.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 9px; margin-left: 24px; border: none; background: transparent;")
 
-        item2_bg = "rgba(255, 255, 255, 0.06)" if self.is_dark else "rgba(0, 0, 0, 0.03)"
-        self.calc_item.setStyleSheet(f"QFrame {{ background: {item2_bg}; border-radius: 5px; border: none; }}")
-        self.calc_title.setStyleSheet(f"color: {t_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 10.5px; font-weight: 700; border: none; background: transparent;")
-        self.calc_sub.setStyleSheet(f"color: {s_col}; font-family: 'SF Pro Text', 'Inter', sans-serif; font-size: 8.5px; border: none; background: transparent;")
-
-        sp_bar_bg = "rgba(255, 255, 255, 0.14)" if self.is_dark else "rgba(0, 0, 0, 0.06)"
-        sp_bar_border = "rgba(255, 255, 255, 0.24)" if self.is_dark else "rgba(0, 0, 0, 0.12)"
-        self.spotlight_bar.setStyleSheet(f"""
-            QFrame {{
-                background-color: {sp_bar_bg};
-                border: 1px solid {sp_bar_border};
-                border-radius: 8px;
-            }}
-        """)
-        badge_bg = "rgba(255, 255, 255, 0.18)" if self.is_dark else "rgba(0, 0, 0, 0.10)"
-        self.sp_badge.setStyleSheet(f"""
-            color: {t_col};
-            background-color: {badge_bg};
-            border-radius: 4px;
-            padding: 1px 6px;
-            font-family: monospace;
-            font-size: 9.5px;
-            font-weight: 600;
-            border: none;
-        """)
-
     def retranslate_ui(self):
         self.title_lbl.setText(t("installer.search_companion_title"))
         self.sub_lbl.setText(t("installer.search_companion_sub"))
-        self.tip_item1.setText("⚡ " + t("installer.search_feature_shortcut"))
-        self.tip_item2.setText("📂 " + t("installer.search_feature_files"))
-        self.tip_item3.setText("🧮 " + t("installer.search_feature_calc"))
-        self.ai_sub.setText(t("installer.spotlight_app_desc"))
-        self.calc_sub.setText(t("installer.spotlight_calc_desc"))
+        self.tip_item1.setText("• " + t("installer.search_feature_shortcut"))
+        self.tip_item2.setText("• " + t("installer.search_feature_files"))
+        self.tip_item3.setText("• " + t("installer.search_feature_calc"))
+        self.desc_title.setText(t("installer.search_desc_title"))
+        self.desc_sub.setText(t("installer.search_desc_sub"))
+        self.desc_body.setText(t("installer.search_desc_body"))
+        self._update_feature_text()
+        self.desc_tip.setText(t("installer.search_desc_tip"))
         self.cmd_lbl.setText(t("installer.search_cmd_label"))
         self.btn_copy_cmd.setText(t("installer.search_copy_btn"))
         chk_text = t("installer.search_opt_enable") if self.is_welcome_mode else t("installer.search_opt_install")
