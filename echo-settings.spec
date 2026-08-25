@@ -1,5 +1,5 @@
 Name:           echo-settings
-Version:        1.0.3
+Version:        1.0.4
 Release:        1%{?dist}
 Summary:        Modern Liquid Glass System Control Center for Linux
 License:        GPL-3.0-or-later
