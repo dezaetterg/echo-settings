@@ -2394,6 +2394,31 @@ TRANSLATIONS = {
         "kk": "Бастапқы код, плагиндер және шығарылымдар.",
         "ar": "شفرة المصدر وإضافات التوسيع والإصدارات."
     },
+    "installer.search_cmd_label": {
+        "en": "Universal installation command:",
+        "ru": "Универсальная команда установки:",
+        "es": "Comando de instalación universal:",
+        "de": "Universeller Installationsbefehl:",
+        "fr": "Commande d'installation universelle :",
+        "zh_CN": "通用一键安装命令：",
+        "ja": "ユニバーサルインストールコマンド：",
+        "it": "Comando di installazione universale:",
+        "pt_BR": "Comando de instalação universal:",
+        "tr": "Evrensel kurulum komutu:",
+        "uk": "Універсальна команда встановлення:",
+        "kk": "Әмбебап орнату пәрмені:",
+        "ar": "أمر التثبيت الشامل:"
+    },
+    "installer.search_copy_btn": {
+        "en": "Copy", "ru": "Копировать", "es": "Copiar", "de": "Kopieren",
+        "fr": "Copier", "zh_CN": "复制", "ja": "コピー", "it": "Copia",
+        "pt_BR": "Copiar", "tr": "Kopyala", "uk": "Копіювати", "kk": "Көшіру", "ar": "نسخ"
+    },
+    "installer.search_copied": {
+        "en": "Copied!", "ru": "Скопировано!", "es": "¡Copiado!", "de": "Kopiert!",
+        "fr": "Copié !", "zh_CN": "已复制！", "ja": "コピー完了！", "it": "Copiato!",
+        "pt_BR": "Copiado!", "tr": "Kopyalandı!", "uk": "Скопійовано!", "kk": "Көшірілді!", "ar": "تم النسخ!"
+    },
     "installer.search_github_btn": {
         "en": "GitHub ↗", "ru": "GitHub ↗", "es": "GitHub ↗", "de": "GitHub ↗",
         "fr": "GitHub ↗", "zh_CN": "GitHub ↗", "ja": "GitHub ↗", "it": "GitHub ↗",

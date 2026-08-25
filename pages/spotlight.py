@@ -120,17 +120,65 @@ class SpotlightPage(QWidget):
         
         promo_inner.addLayout(header_row)
         
+        # Universal Install Command Box
+        cmd_layout = QHBoxLayout()
+        cmd_layout.setContentsMargins(72, 4, 0, 4)
+        cmd_layout.setSpacing(8)
+
+        self.spotlight_cmd_str = "git clone https://github.com/dezaetterg/echo-search.git && cd echo-search && ./install.sh"
+        self.spotlight_cmd_code = QLabel(self.spotlight_cmd_str)
+        self.spotlight_cmd_code.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.spotlight_cmd_code.setStyleSheet(f"""
+            QLabel {{
+                background: rgba(0, 0, 0, 0.15);
+                border: 1px solid {Colors.BORDER_LIGHT};
+                border-radius: 6px;
+                padding: 4px 8px;
+                color: {Colors.TEXT_PRIMARY};
+                font-family: 'SF Mono', monospace;
+                font-size: 11px;
+            }}
+        """)
+        cmd_layout.addWidget(self.spotlight_cmd_code, 1)
+
+        self.btn_copy_spotlight_cmd = QPushButton(t("installer.search_copy_btn", "Copy"))
+        self.btn_copy_spotlight_cmd.setCursor(Qt.PointingHandCursor)
+        self.btn_copy_spotlight_cmd.setFixedHeight(28)
+        self.btn_copy_spotlight_cmd.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {Colors.ACCENT_COLOR};
+                color: #FFFFFF;
+                border: none;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                padding: 4px 12px;
+            }}
+            QPushButton:hover {{
+                opacity: 0.9;
+            }}
+        """)
+        self.btn_copy_spotlight_cmd.clicked.connect(self._copy_spotlight_command)
+        cmd_layout.addWidget(self.btn_copy_spotlight_cmd)
+        promo_inner.addLayout(cmd_layout)
+
         # Button bar
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(12)
         btn_layout.addSpacing(72)  # align with text
         
-        self.btn_download = QPushButton(t("search.btn_download", "Download Echo Search"))
+        self.btn_download = QPushButton(t("search.btn_download", "Install Echo Search"))
         self.btn_download.setCursor(Qt.PointingHandCursor)
         self.btn_download.setFixedHeight(34)
         self.btn_download.clicked.connect(self._open_download_page)
         btn_layout.addWidget(self.btn_download)
         
+        self.btn_github_spotlight = QPushButton("GitHub ↗")
+        self.btn_github_spotlight.setCursor(Qt.PointingHandCursor)
+        self.btn_github_spotlight.setFixedHeight(34)
+        self.btn_github_spotlight.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/dezaetterg/echo-search")))
+        btn_layout.addWidget(self.btn_github_spotlight)
+
         self.btn_check_again = QPushButton("↻ " + t("search.btn_check_again", "Check Again"))
         self.btn_check_again.setCursor(Qt.PointingHandCursor)
         self.btn_check_again.setFixedHeight(34)
@@ -168,6 +216,15 @@ class SpotlightPage(QWidget):
         scroll.setWidget(un_content)
         return scroll
 
+    def _copy_spotlight_command(self):
+        from PySide6.QtGui import QGuiApplication
+        from PySide6.QtCore import QTimer
+        clipboard = QGuiApplication.clipboard()
+        if clipboard:
+            clipboard.setText(self.spotlight_cmd_str)
+        self.btn_copy_spotlight_cmd.setText("✓ " + t("installer.search_copied", "Copied!"))
+        QTimer.singleShot(2000, lambda: self.btn_copy_spotlight_cmd.setText(t("installer.search_copy_btn", "Copy")))
+
     def _open_download_page(self):
         from localization import t
         from PySide6.QtGui import QDesktopServices
@@ -178,7 +235,7 @@ class SpotlightPage(QWidget):
             InstallationEngine = None
 
         if not InstallationEngine:
-            QDesktopServices.openUrl(QUrl("https://github.com/echo-desktop/echo-search"))
+            QDesktopServices.openUrl(QUrl("https://github.com/dezaetterg/echo-search"))
             return
 
         self.btn_download.setEnabled(False)
@@ -202,7 +259,7 @@ class SpotlightPage(QWidget):
                 self.refresh_install_status()
             else:
                 self.btn_download.setText(t("search.btn_download", "Download Echo Search"))
-                QDesktopServices.openUrl(QUrl("https://github.com/echo-desktop/echo-search"))
+                QDesktopServices.openUrl(QUrl("https://github.com/dezaetterg/echo-search"))
 
         self._quick_install_thread.completed.connect(_on_finished)
         self._quick_install_thread.start()

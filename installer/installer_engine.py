@@ -420,9 +420,26 @@ X-Echo-Version={VERSION}
                 found_deb = d
                 break
 
-        # 3. If neither local source nor valid deb found, download latest .deb from HTTP server / GitHub
+        # 3. If neither local source nor valid deb found, try git clone first, then fallback to downloading .deb
         if not found_src and not found_deb:
-            report(15, 100, "Connecting to Echo Search repository...")
+            if shutil.which("git"):
+                report(15, 100, "Cloning Echo Search from GitHub repository...")
+                git_tmp = "/tmp/echo_search_git_install"
+                try:
+                    if os.path.exists(git_tmp):
+                        shutil.rmtree(git_tmp)
+                    res = subprocess.run(
+                        ["git", "clone", "--depth", "1", "https://github.com/dezaetterg/echo-search.git", git_tmp],
+                        capture_output=True, text=True, timeout=30
+                    )
+                    if res.returncode == 0 and os.path.exists(os.path.join(git_tmp, "main.py")):
+                        found_src = git_tmp
+                        report(50, 100, "Echo Search repository cloned.")
+                except Exception as e:
+                    print(f"Git clone notice: {e}")
+
+            if not found_src:
+                report(20, 100, "Connecting to Echo Search package repository...")
             download_urls = [
                 "http://127.0.0.1:8000/dist/echo-search_latest.deb",
                 "http://192.168.1.226:8000/dist/echo-search_latest.deb",
