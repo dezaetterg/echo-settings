@@ -442,8 +442,12 @@ class SpotlightPage(QWidget):
         self.slider_width = Slider(Qt.Horizontal)
         self.slider_width.setRange(200, 800)
         self.slider_width.setValue(self.service.get("preview_width") or 420)
-        self.slider_width.valueChanged.connect(lambda v: self.service.set("preview_width", v))
         self.slider_width.setFixedWidth(150)
+        
+        self.width_timer = QTimer(self)
+        self.width_timer.setSingleShot(True)
+        self.width_timer.setInterval(200)
+        self.width_timer.timeout.connect(lambda: self.service.set("preview_width", self.slider_width.value()))
         
         width_layout = QHBoxLayout()
         width_layout.setSpacing(10)
@@ -451,7 +455,7 @@ class SpotlightPage(QWidget):
         self.lbl_width_val = QLabel(f"{self.slider_width.value()}px")
         self.lbl_width_val.setFixedWidth(45)
         self.lbl_width_val.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.slider_width.valueChanged.connect(lambda v: self.lbl_width_val.setText(f"{v}px"))
+        self.slider_width.valueChanged.connect(lambda v: (self.lbl_width_val.setText(f"{v}px"), self.width_timer.start()))
         width_layout.addWidget(self.lbl_width_val)
         
         width_widget = QWidget()
