@@ -364,7 +364,7 @@ X-Echo-Version={VERSION}
         """
         Downloads, packages, or copies and installs Echo Search companion.
         Works across all Linux distros (Mint, Ubuntu, Debian, Arch, Fedora, openSUSE).
-        Configures launcher, desktop entry, application icon, autostart, and global hotkeys.
+        Configures resilient launcher, desktop entry, application icons, autostart, and global hotkeys.
         """
         import urllib.request
         import time
@@ -396,8 +396,17 @@ X-Echo-Version={VERSION}
         os.makedirs(es_autostart_dir, exist_ok=True)
 
         # 2. Check for local source directories or .deb archives
+        here_dir = os.path.dirname(os.path.abspath(__file__))
+        top_dir = os.path.dirname(here_dir)
+
         local_candidates = [
             os.path.expanduser("~/echo_search"),
+            os.path.expanduser("~/echo-search"),
+            os.path.expanduser("~/spotlight_liquidglass"),
+            os.path.join(top_dir, "echo_search"),
+            os.path.join(top_dir, "echo-search"),
+            os.path.join(os.path.dirname(top_dir), "echo_search"),
+            os.path.join(os.path.dirname(top_dir), "echo-search"),
             "/usr/lib/echo-search",
             "/usr/share/echo-search",
             os.path.expanduser("~/.local/share/spotlight-glass"),
@@ -405,6 +414,7 @@ X-Echo-Version={VERSION}
 
         local_deb_candidates = [
             os.path.expanduser("~/echo_search/dist/echo-search_latest.deb"),
+            os.path.join(top_dir, "dist", "echo-search_latest.deb"),
             "/tmp/echo-search_latest.deb",
         ]
 
@@ -420,17 +430,17 @@ X-Echo-Version={VERSION}
                 found_deb = d
                 break
 
-        # 3. If neither local source nor valid deb found, try git clone first, then fallback to downloading .deb
+        # 3. If neither local source nor valid deb found, try git clone first, then fallback to archive download
         if not found_src and not found_deb:
             if shutil.which("git"):
                 report(15, 100, "Cloning Echo Search from GitHub repository...")
                 git_tmp = "/tmp/echo_search_git_install"
                 try:
                     if os.path.exists(git_tmp):
-                        shutil.rmtree(git_tmp)
+                        shutil.rmtree(git_tmp, ignore_errors=True)
                     res = subprocess.run(
                         ["git", "clone", "--depth", "1", "https://github.com/dezaetterg/echo-search.git", git_tmp],
-                        capture_output=True, text=True, timeout=30
+                        capture_output=True, text=True, timeout=35
                     )
                     if res.returncode == 0 and os.path.exists(os.path.join(git_tmp, "main.py")):
                         found_src = git_tmp
@@ -439,37 +449,26 @@ X-Echo-Version={VERSION}
                     print(f"Git clone notice: {e}")
 
             if not found_src:
-                report(20, 100, "Connecting to Echo Search package repository...")
-            download_urls = [
-                "http://127.0.0.1:8000/dist/echo-search_latest.deb",
-                "http://192.168.1.226:8000/dist/echo-search_latest.deb",
-                "https://raw.githubusercontent.com/dezaetterg/echo-search/main/dist/echo-search_latest.deb",
-                "https://github.com/dezaetterg/echo-search/releases/latest/download/echo-search_latest.deb"
-            ]
-            temp_deb = "/tmp/echo-search_latest.deb"
-
-            for url in download_urls:
+                report(25, 100, "Downloading Echo Search archive from GitHub...")
+                tar_tmp = "/tmp/echo_search_archive.tar.gz"
+                extract_tmp = "/tmp/echo_search_tar_extract"
                 try:
-                    report(20, 100, "Downloading Echo Search package...")
-                    req = urllib.request.Request(url, headers={"User-Agent": "EchoSettingsInstaller/1.0"})
-                    with urllib.request.urlopen(req, timeout=5) as response:
-                        total_len = int(response.headers.get("content-length", 0))
-                        dl_bytes = 0
-                        with open(temp_deb, "wb") as f_out:
-                            while True:
-                                buf = response.read(32768)
-                                if not buf:
-                                    break
-                                f_out.write(buf)
-                                dl_bytes += len(buf)
-                                if total_len > 0:
-                                    pct = 20 + int(45 * (dl_bytes / total_len))
-                                    report(pct, 100, f"Downloading Echo Search ({dl_bytes // 1024} KB / {total_len // 1024} KB)...")
-                        if os.path.exists(temp_deb) and os.path.getsize(temp_deb) > 5000:
-                            found_deb = temp_deb
-                            break
-                except Exception:
-                    continue
+                    shutil.rmtree(extract_tmp, ignore_errors=True)
+                    os.makedirs(extract_tmp, exist_ok=True)
+                    tar_url = "https://github.com/dezaetterg/echo-search/archive/refs/heads/main.tar.gz"
+                    req = urllib.request.Request(tar_url, headers={"User-Agent": "EchoSettingsInstaller/1.0"})
+                    with urllib.request.urlopen(req, timeout=25) as response:
+                        with open(tar_tmp, "wb") as f_out:
+                            shutil.copyfileobj(response, f_out)
+                    
+                    if os.path.exists(tar_tmp) and os.path.getsize(tar_tmp) > 10000:
+                        subprocess.run(["tar", "-xzf", tar_tmp, "-C", extract_tmp], check=True, capture_output=True)
+                        for root, dirs, files in os.walk(extract_tmp):
+                            if "main.py" in files and "ui.py" in files:
+                                found_src = root
+                                break
+                except Exception as e:
+                    print(f"Archive download notice: {e}")
 
         # 4. Deploy application files
         report(65, 100, "Deploying Echo Search core modules...")
@@ -491,7 +490,7 @@ X-Echo-Version={VERSION}
                     report(70, 100, "Extracting Echo Search package contents...")
                     extract_tmp = "/tmp/echo_search_extract"
                     if os.path.exists(extract_tmp):
-                        shutil.rmtree(extract_tmp)
+                        shutil.rmtree(extract_tmp, ignore_errors=True)
                     os.makedirs(extract_tmp, exist_ok=True)
                     subprocess.run(["dpkg-deb", "-x", found_deb, extract_tmp], check=True, capture_output=True)
                     
@@ -502,7 +501,7 @@ X-Echo-Version={VERSION}
                             d_i = os.path.join(es_app_dir, item)
                             if os.path.isdir(s_i):
                                 if os.path.exists(d_i):
-                                    shutil.rmtree(d_i)
+                                    shutil.rmtree(d_i, ignore_errors=True)
                                 shutil.copytree(s_i, d_i)
                             else:
                                 shutil.copy2(s_i, d_i)
@@ -510,8 +509,8 @@ X-Echo-Version={VERSION}
                 except Exception:
                     pass
 
-            # If local source folder is found, copy files directly
-            if found_src and os.path.isdir(found_src) and found_src != es_app_dir:
+            # If source folder is found, copy files directly
+            if found_src and os.path.isdir(found_src) and os.path.abspath(found_src) != os.path.abspath(es_app_dir):
                 FILES_TO_COPY = [
                     "main.py", "ui.py", "config_manager.py", "i18n.py",
                     "search_engine.py", "preview_manager.py", "utils.py",
@@ -527,15 +526,48 @@ X-Echo-Version={VERSION}
                     dst_d = os.path.join(es_app_dir, d)
                     if os.path.isdir(src_d):
                         if os.path.exists(dst_d):
-                            shutil.rmtree(dst_d)
+                            shutil.rmtree(dst_d, ignore_errors=True)
                         shutil.copytree(src_d, dst_d, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 
-        # 5. Create launcher script
+        # Verify deployment of critical file main.py
+        if not os.path.isfile(os.path.join(es_app_dir, "main.py")):
+            raise RuntimeError(f"Echo Search deployment failed: main.py not found in {es_app_dir}")
+
+        # 5. Create smart executable launcher
         report(82, 100, "Configuring executable launcher...")
-        launcher_content = f"""#!/bin/sh
-exec /usr/bin/python3 "{os.path.join(es_app_dir, 'main.py')}" "$@"
+        sys_exe = sys.executable if sys.executable else "/usr/bin/python3"
+        launcher_content = f"""#!/usr/bin/env bash
+# Echo Search - Executable Launcher
+set -e
+
+APP_DIR="{es_app_dir}"
+if [ ! -d "$APP_DIR" ]; then
+    echo "Error: Echo Search application directory not found: $APP_DIR" >&2
+    exit 1
+fi
+
+PYTHON_EXEC=""
+for cand in "/usr/bin/python3" "$APP_DIR/venv/bin/python3" "$APP_DIR/venv/bin/python" "{sys_exe}" "$(which python3 2>/dev/null)" "python3"; do
+    if [ -n "$cand" ] && ([ -x "$cand" ] || command -v "$cand" >/dev/null 2>&1); then
+        if "$cand" -c "import gi; from gi.repository import Gtk" 2>/dev/null; then
+            PYTHON_EXEC="$cand"
+            break
+        fi
+    fi
+done
+
+if [ -z "$PYTHON_EXEC" ]; then
+    if [ -x "{sys_exe}" ]; then
+        PYTHON_EXEC="{sys_exe}"
+    else
+        PYTHON_EXEC="/usr/bin/python3"
+    fi
+fi
+
+export PYTHONPATH="$APP_DIR:$PYTHONPATH"
+exec "$PYTHON_EXEC" "$APP_DIR/main.py" "$@"
 """
-        with open(es_bin_file, "w") as f_bin:
+        with open(es_bin_file, "w", encoding="utf-8") as f_bin:
             f_bin.write(launcher_content)
         os.chmod(es_bin_file, 0o755)
 
@@ -553,8 +585,21 @@ exec /usr/bin/python3 "{os.path.join(es_app_dir, 'main.py')}" "$@"
                     os.makedirs(d_path, exist_ok=True)
                     for ico in os.listdir(s_path):
                         shutil.copy2(os.path.join(s_path, ico), os.path.join(d_path, ico))
+                        # Also copy as echo-search.png for maximum compatibility
+                        if ico == "com.echo.search.png":
+                            shutil.copy2(os.path.join(s_path, ico), os.path.join(d_path, "echo-search.png"))
 
-        # 7. Create desktop entry
+        # Scalable SVG Icon
+        svg_src = os.path.join(es_app_dir, "assets", "icons", "com.echo.search.svg")
+        if not os.path.exists(svg_src) and found_src:
+            svg_src = os.path.join(found_src, "assets", "icons", "com.echo.search.svg")
+        if os.path.exists(svg_src):
+            svg_dst_dir = os.path.join(es_icons_base, "scalable", "apps")
+            os.makedirs(svg_dst_dir, exist_ok=True)
+            shutil.copy2(svg_src, os.path.join(svg_dst_dir, "com.echo.search.svg"))
+            shutil.copy2(svg_src, os.path.join(svg_dst_dir, "echo-search.svg"))
+
+        # 7. Create desktop entry & Autostart
         report(90, 100, "Registering desktop application shortcut...")
         desktop_content = f"""[Desktop Entry]
 Name=Echo Search
@@ -571,49 +616,91 @@ StartupWMClass=echo-search
 X-GNOME-Autostart-enabled=true
 """
         es_desktop_file = os.path.join(es_desktop_dir, "com.echo.search.desktop")
-        with open(es_desktop_file, "w") as f_dt:
+        with open(es_desktop_file, "w", encoding="utf-8") as f_dt:
             f_dt.write(desktop_content)
         os.chmod(es_desktop_file, 0o755)
 
         # Autostart entry
         autostart_file = os.path.join(es_autostart_dir, "com.echo.search.desktop")
         try:
-            with open(autostart_file, "w") as f_as:
+            with open(autostart_file, "w", encoding="utf-8") as f_as:
                 f_as.write(desktop_content)
+            os.chmod(autostart_file, 0o755)
         except Exception:
             pass
 
-        # 8. Register Desktop Environment Hotkeys (GNOME / Cinnamon / KDE / XFCE)
+        # 8. Register Desktop Environment Hotkeys (GNOME / Cinnamon / KDE / XFCE / MATE)
         report(94, 100, "Registering global Super+Space shortcut...")
         try:
-            custom_schema = "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding"
-            media_keys = "org.gnome.settings-daemon.plugins.media-keys"
-            
             if shutil.which("gsettings"):
                 # Cinnamon
-                subprocess.run([
-                    "gsettings", "set", "org.cinnamon.desktop.keybindings", "custom-list", "['custom0']"
-                ], capture_output=True)
-                subprocess.run([
-                    "gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom0/", "name", "Echo Search"
-                ], capture_output=True)
-                subprocess.run([
-                    "gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom0/", "command", es_bin_file
-                ], capture_output=True)
-                subprocess.run([
-                    "gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom0/", "binding", "['<Super>space']"
-                ], capture_output=True)
+                try:
+                    subprocess.run([
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-to-workspace-left", "['']"
+                    ], capture_output=True)
+                    subprocess.run([
+                        "gsettings", "set", "org.cinnamon.desktop.keybindings.wm", "switch-to-workspace-down", "['']"
+                    ], capture_output=True)
 
-                # GNOME
-                for i in range(10):
-                    kp = f"/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom{i}/"
-                    cur_name = subprocess.run(["gsettings", "get", f"{custom_schema}:{kp}", "name"], capture_output=True, text=True).stdout.strip()
-                    if not cur_name or cur_name == "''" or cur_name == "@as []" or "Echo" in cur_name:
-                        subprocess.run(["gsettings", "set", f"{custom_schema}:{kp}", "name", "Echo"], capture_output=True)
-                        subprocess.run(["gsettings", "set", f"{custom_schema}:{kp}", "command", es_bin_file], capture_output=True)
-                        subprocess.run(["gsettings", "set", f"{custom_schema}:{kp}", "binding", "<Super>space"], capture_output=True)
-                        subprocess.run(["gsettings", "set", media_keys, "custom-keybindings", f"['{kp}']"], capture_output=True)
-                        break
+                    c_main = "org.cinnamon.desktop.keybindings"
+                    c_schema = "org.cinnamon.desktop.keybindings.custom-keybinding"
+                    c_list_res = subprocess.run(["gsettings", "get", c_main, "custom-list"], capture_output=True, text=True).stdout.strip()
+                    found_slot = "custom0"
+                    for i in range(16):
+                        s_id = f"custom{i}"
+                        s_path = f"/org/cinnamon/desktop/keybindings/custom-keybindings/{s_id}/"
+                        s_name = subprocess.run(["gsettings", "get", f"{c_schema}:{s_path}", "name"], capture_output=True, text=True).stdout.strip()
+                        if not s_name or s_name == "''" or s_name == "@as []" or "Echo" in s_name:
+                            found_slot = s_id
+                            break
+                    slot_path = f"/org/cinnamon/desktop/keybindings/custom-keybindings/{found_slot}/"
+                    subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "name", "Echo Search"], capture_output=True)
+                    subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "command", es_bin_file], capture_output=True)
+                    subprocess.run(["gsettings", "set", f"{c_schema}:{slot_path}", "binding", "['<Super>space']"], capture_output=True)
+                    if found_slot not in c_list_res:
+                        if not c_list_res or c_list_res in ("@as []", "[]", "''"):
+                            new_list = f"['{found_slot}']"
+                        else:
+                            new_list = c_list_res.rstrip("]") + f", '{found_slot}']"
+                        subprocess.run(["gsettings", "set", c_main, "custom-list", new_list], capture_output=True)
+                except Exception:
+                    pass
+
+                # GNOME / Budgie / Unity
+                try:
+                    custom_schema = "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding"
+                    media_keys = "org.gnome.settings-daemon.plugins.media-keys"
+                    g_list_res = subprocess.run(["gsettings", "get", media_keys, "custom-keybindings"], capture_output=True, text=True).stdout.strip()
+                    g_slot = "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/"
+                    for i in range(16):
+                        kp = f"/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom{i}/"
+                        cur_name = subprocess.run(["gsettings", "get", f"{custom_schema}:{kp}", "name"], capture_output=True, text=True).stdout.strip()
+                        if not cur_name or cur_name == "''" or cur_name == "@as []" or "Echo" in cur_name:
+                            g_slot = kp
+                            break
+                    subprocess.run(["gsettings", "set", f"{custom_schema}:{g_slot}", "name", "Echo Search"], capture_output=True)
+                    subprocess.run(["gsettings", "set", f"{custom_schema}:{g_slot}", "command", es_bin_file], capture_output=True)
+                    subprocess.run(["gsettings", "set", f"{custom_schema}:{g_slot}", "binding", "<Super>space"], capture_output=True)
+                    if g_slot not in g_list_res:
+                        if not g_list_res or g_list_res in ("@as []", "[]", "''"):
+                            new_bindings = f"['{g_slot}']"
+                        else:
+                            new_bindings = g_list_res.rstrip("]") + f", '{g_slot}']"
+                        subprocess.run(["gsettings", "set", media_keys, "custom-keybindings", new_bindings], capture_output=True)
+                except Exception:
+                    pass
+
+            # KDE Plasma
+            if shutil.which("kwriteconfig6"):
+                subprocess.run(["kwriteconfig6", "--file", "kglobalshortcutsrc", "--group", "com.echo.search.desktop", "--key", "_launch", "Meta+Space,none,Echo Search"], capture_output=True)
+                subprocess.run(["qdbus", "org.kde.KGlobalAccel", "/KGlobalAccel", "reloadConfig"], capture_output=True)
+            elif shutil.which("kwriteconfig5"):
+                subprocess.run(["kwriteconfig5", "--file", "kglobalshortcutsrc", "--group", "com.echo.search.desktop", "--key", "_launch", "Meta+Space,none,Echo Search"], capture_output=True)
+                subprocess.run(["qdbus", "org.kde.KGlobalAccel", "/KGlobalAccel", "reloadConfig"], capture_output=True)
+
+            # XFCE
+            if shutil.which("xfconf-query"):
+                subprocess.run(["xfconf-query", "-c", "xfce4-keyboard-shortcuts", "-p", "/commands/custom/<Super>space", "-n", "-t", "string", "-s", "echo-search"], capture_output=True)
 
             if shutil.which("update-desktop-database"):
                 subprocess.run(["update-desktop-database", "-q", es_desktop_dir], capture_output=True)

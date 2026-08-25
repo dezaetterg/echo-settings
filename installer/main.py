@@ -90,15 +90,52 @@ class InstallWorker(QThread):
     progress = Signal(int, str, int)
     finished = Signal(bool, str)
 
-    def __init__(self, scope: str = "user", autostart: bool = False, desktop_shortcut: bool = False, install_echo_search: bool = True):
+    def __init__(self, scope: str = "user", autostart: bool = False, desktop_shortcut: bool = False, install_echo_search: bool = True, is_welcome_mode: bool = False):
         super().__init__()
         self.scope = scope
         self.autostart = autostart
         self.desktop_shortcut = desktop_shortcut
         self.install_echo_search = install_echo_search
+        self.is_welcome_mode = is_welcome_mode
 
     def run(self):
         try:
+            def cb(step, total, msg):
+                pct = int(min(100, max(0, (step / total) * 100))) if total > 0 else step
+                stage = 1
+                if pct >= 85:
+                    stage = 5
+                elif pct >= 70:
+                    stage = 4
+                elif pct >= 45:
+                    stage = 3
+                elif pct >= 15:
+                    stage = 2
+                else:
+                    stage = 1
+                self.progress.emit(pct, msg, stage)
+
+            if self.is_welcome_mode:
+                if self.install_echo_search:
+                    cb(5, 100, "Checking Echo Search installation sources...")
+                    success = InstallationEngine.install_echo_search(
+                        scope=self.scope,
+                        progress_callback=cb
+                    )
+                    if not success:
+                        self.finished.emit(False, "Failed to deploy Echo Search.")
+                        return
+                    # Launch echo-search daemon in background immediately
+                    try:
+                        bin_path = os.path.expanduser("~/.local/bin/echo-search") if self.scope == "user" else "/usr/bin/echo-search"
+                        if os.path.exists(bin_path):
+                            subprocess.Popen([bin_path])
+                    except Exception:
+                        pass
+                cb(100, 100, "Setup complete!")
+                self.finished.emit(True, "")
+                return
+
             if self.scope == "system" and os.geteuid() != 0:
                 installer_script = os.path.abspath(__file__)
                 cmd = ["pkexec", sys.executable, installer_script, "--internal-install-system"]
@@ -113,21 +150,6 @@ class InstallWorker(QThread):
                     return
                 self.finished.emit(True, "")
             else:
-                def cb(step, total, msg):
-                    pct = int(min(100, max(0, (step / total) * 100))) if total > 0 else step
-                    stage = 1
-                    if pct >= 85:
-                        stage = 5
-                    elif pct >= 70:
-                        stage = 4
-                    elif pct >= 45:
-                        stage = 3
-                    elif pct >= 15:
-                        stage = 2
-                    else:
-                        stage = 1
-                    self.progress.emit(pct, msg, stage)
-
                 success = InstallationEngine.install(
                     self.scope,
                     autostart=self.autostart,
@@ -1603,14 +1625,14 @@ class CompleteView(QWidget):
         c_layout.setSpacing(8)
 
         if self.is_welcome_mode:
-            self.item1_lbl = QLabel("✨  " + t("installer.welcome_item1"))
-            self.item2_lbl = QLabel("⚡  " + t("installer.welcome_item2"))
-            self.item3_lbl = QLabel("💎  " + t("installer.welcome_item3"))
+            self.item1_lbl = QLabel("• " + t("installer.welcome_item1"))
+            self.item2_lbl = QLabel("• " + t("installer.welcome_item2"))
+            self.item3_lbl = QLabel("• " + t("installer.welcome_item3"))
         else:
-            self.item1_lbl = QLabel("✨  " + t("installer.complete_item1"))
-            self.item2_lbl = QLabel("⚡  " + t("installer.complete_item2"))
-            self.item3_lbl = QLabel("💎  " + t("installer.complete_item3"))
-        self.item_search_lbl = QLabel("🔍  " + t("installer.complete_item_search"))
+            self.item1_lbl = QLabel("• " + t("installer.complete_item1"))
+            self.item2_lbl = QLabel("• " + t("installer.complete_item2"))
+            self.item3_lbl = QLabel("• " + t("installer.complete_item3"))
+        self.item_search_lbl = QLabel("• " + t("installer.complete_item_search"))
         self.item_search_lbl.setVisible(False)
 
         for lbl in (self.item1_lbl, self.item2_lbl, self.item3_lbl, self.item_search_lbl):
@@ -1673,11 +1695,11 @@ class CompleteView(QWidget):
         self.btn_close.setText(t("installer.close_btn"))
         self.btn_launch.setText(t("installer.launch_btn"))
         if self.is_welcome_mode:
-            self.item1_lbl.setText("✨  " + t("installer.welcome_item1"))
-            self.item2_lbl.setText("⚡  " + t("installer.welcome_item2"))
-            self.item3_lbl.setText("💎  " + t("installer.welcome_item3"))
+            self.item1_lbl.setText("• " + t("installer.welcome_item1"))
+            self.item2_lbl.setText("• " + t("installer.welcome_item2"))
+            self.item3_lbl.setText("• " + t("installer.welcome_item3"))
         else:
-            self.item1_lbl.setText("✨  " + t("installer.complete_item1"))
+            self.item1_lbl.setText("• " + t("installer.complete_item1"))
             self.item2_lbl.setText("⚡  " + t("installer.complete_item2"))
             self.item3_lbl.setText("💎  " + t("installer.complete_item3"))
         self.item_search_lbl.setText("🔍  " + t("installer.complete_item_search"))
@@ -2021,7 +2043,8 @@ class EchoInstallerWindow(QWidget):
             scope=scope,
             autostart=autostart,
             desktop_shortcut=desktop_shortcut,
-            install_echo_search=install_echo_search
+            install_echo_search=install_echo_search,
+            is_welcome_mode=self.is_welcome_mode
         )
         self.worker.progress.connect(self.installing_view.update_progress)
         self.worker.finished.connect(self._on_install_finished)
@@ -2037,25 +2060,29 @@ class EchoInstallerWindow(QWidget):
             self.stack.setCurrentWidget(self.error_view)
 
     def _launch_app(self):
-        if self.on_complete:
-            self.on_complete()
-            self.close()
-            return
-        paths = InstallationEngine.get_paths(self.selected_scope)
         if getattr(self, "selected_echo_search", False):
             candidates = [
                 os.path.expanduser("~/.local/bin/echo-search"),
                 "/usr/local/bin/echo-search",
                 "/usr/bin/echo-search",
-                os.path.expanduser("~/echo_search/main.py")
+                os.path.expanduser("~/echo_search/main.py"),
+                os.path.expanduser("~/echo-search/main.py")
             ]
             for c in candidates:
                 if os.path.exists(c):
-                    if c.endswith(".py"):
-                        subprocess.Popen(["python3", c])
-                    else:
-                        subprocess.Popen([c])
-                    break
+                    try:
+                        if c.endswith(".py"):
+                            subprocess.Popen([sys.executable, c])
+                        else:
+                            subprocess.Popen([c])
+                        break
+                    except Exception:
+                        pass
+        if self.on_complete:
+            self.on_complete()
+            self.close()
+            return
+        paths = InstallationEngine.get_paths(self.selected_scope)
         if os.path.exists(paths["bin_file"]):
             subprocess.Popen([paths["bin_file"]])
         elif os.path.exists("/usr/bin/echo-settings"):
@@ -2256,7 +2283,9 @@ class EchoUninstallerWindow(QWidget):
 # =============================================================================
 def main():
     if "--internal-install-system" in sys.argv:
-        success = InstallationEngine.install("system")
+        autostart = "--autostart" in sys.argv
+        install_echo_search = "--echo-search" in sys.argv
+        success = InstallationEngine.install("system", autostart=autostart, install_echo_search=install_echo_search)
         sys.exit(0 if success else 1)
 
     if "--internal-uninstall-system" in sys.argv:
