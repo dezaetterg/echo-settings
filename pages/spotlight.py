@@ -409,6 +409,7 @@ class SpotlightPage(QWidget):
         # Unfold Animation
         anim_opts = {
             "slide_down": t("search.anim_slide_down", "Slide Down"),
+            "aura_glow": t("search.anim_aura_glow", "Aura Glow"),
             "swing_down": t("search.anim_swing_down", "3D Swing Down"),
             "none": t("search.anim_none", "Instant")
         }
