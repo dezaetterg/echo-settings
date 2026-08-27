@@ -3,6 +3,7 @@ from PySide6.QtCore import Qt, QUrl, QTimer
 from PySide6.QtGui import QDesktopServices
 
 from components.shortcut_input import ShortcutInput
+from components.popup_button import PopupButton
 
 from theme.colors import Colors
 from theme.typography import Typography
@@ -403,7 +404,20 @@ class SpotlightPage(QWidget):
         self.sw_anim = Switch()
         self.sw_anim.setChecked(self.service.get("animations") is not False)
         self.sw_anim.toggled.connect(lambda v: self.service.set("animations", v))
-        self.group_appearance.add_row(SettingsRow(t("search.animations", "Animations"), self.sw_anim, show_separator=False))
+        self.group_appearance.add_row(SettingsRow(t("search.animations", "Animations"), self.sw_anim, show_separator=True))
+        
+        # Unfold Animation
+        anim_opts = {
+            "fade_slide_down": t("search.anim_fade_slide_down", "Soft Slide & Fade"),
+            "crossfade": t("search.anim_crossfade", "Smooth Crossfade"),
+            "slide_down": t("search.anim_slide_down", "Classic Slide Down"),
+            "swing_down": t("search.anim_swing_down", "3D Swing Down"),
+            "none": t("search.anim_none", "None (Instant)")
+        }
+        current_anim = self.service.get("unfold_animation") or "fade_slide_down"
+        self.combo_anim = PopupButton(anim_opts, current_anim)
+        self.combo_anim.valueChanged.connect(lambda v: self.service.set("unfold_animation", v))
+        self.group_appearance.add_row(SettingsRow(t("search.unfold_animation", "Unfold Animation"), self.combo_anim, show_separator=False))
         
         self.layout.addWidget(self.group_appearance)
 
