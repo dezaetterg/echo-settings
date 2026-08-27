@@ -408,13 +408,11 @@ class SpotlightPage(QWidget):
         
         # Unfold Animation
         anim_opts = {
-            "fade_slide_down": t("search.anim_fade_slide_down", "Soft Slide & Fade"),
-            "crossfade": t("search.anim_crossfade", "Smooth Crossfade"),
-            "slide_down": t("search.anim_slide_down", "Classic Slide Down"),
+            "slide_down": t("search.anim_slide_down", "Slide Down"),
             "swing_down": t("search.anim_swing_down", "3D Swing Down"),
-            "none": t("search.anim_none", "None (Instant)")
+            "none": t("search.anim_none", "Instant")
         }
-        current_anim = self.service.get("unfold_animation") or "fade_slide_down"
+        current_anim = self.service.get("unfold_animation") or "slide_down"
         self.combo_anim = PopupButton(anim_opts, current_anim)
         self.combo_anim.valueChanged.connect(lambda v: self.service.set("unfold_animation", v))
         self.group_appearance.add_row(SettingsRow(t("search.unfold_animation", "Unfold Animation"), self.combo_anim, show_separator=False))
